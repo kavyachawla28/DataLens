@@ -25,3 +25,6 @@ dist-ssr
 # DataLens backend
 .env
 server/uploads/
+
+# Test CSV files
+*.csv
