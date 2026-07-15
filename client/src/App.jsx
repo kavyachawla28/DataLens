@@ -199,6 +199,30 @@ const columnInsights =
         };
       })()
     : null;
+const columnTypes = dataset
+  ? dataset.columns.map((column) => {
+      const values = dataset.data
+        .map((row) => row[column])
+        .filter(
+          (value) =>
+            value !== "" &&
+            value !== null &&
+            value !== undefined &&
+            value !== "N/A"
+        );
+
+      const isNumeric =
+        values.length > 0 &&
+        values.every(
+          (value) => !isNaN(Number(value))
+        );
+
+      return {
+        name: column,
+        type: isNumeric ? "Numeric" : "Text",
+      };
+    })
+  : [];
   const totalCells = dataset
     ? dataset.rowCount * dataset.columnCount
     : 0;
@@ -344,13 +368,20 @@ const columnInsights =
             </div>
 
             <div className="columns-box">
-              <h3>Columns</h3>
+  <h3>Column Profiling</h3>
 
-              <div className="column-list">
-                {dataset.columns.map((column, index) => (
-                  <span key={index}>{column}</span>
-                ))}
-              </div>
+  <div className="column-profile-grid">
+    {columnTypes.map((column, index) => (
+      <div
+        className="column-profile-card"
+        key={index}
+      >
+        <h4>{column.name}</h4>
+
+        <p>{column.type}</p>
+      </div>
+    ))}
+  </div>
 
               <div className="preview-box">
                 <h3>Data Preview</h3>

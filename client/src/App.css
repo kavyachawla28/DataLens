@@ -279,3 +279,35 @@ tbody tr:hover {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+.column-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin: 20px 0 30px;
+}
+
+.column-profile-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.column-profile-card h4 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  color: #0f172a;
+}
+
+.column-profile-card p {
+  margin: 0;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+@media (max-width: 768px) {
+  .column-profile-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
