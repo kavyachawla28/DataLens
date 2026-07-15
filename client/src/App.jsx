@@ -71,6 +71,37 @@ const numericColumns = dataset
         value: Number(row[selectedColumn]) || 0,
       }))
     : [];
+const totalCells = dataset
+  ? dataset.rowCount * dataset.columnCount
+  : 0;
+
+const missingPercentage =
+  totalCells > 0
+    ? (dataset.missingValues / totalCells) * 100
+    : 0;
+
+const duplicatePercentage =
+  dataset && dataset.rowCount > 0
+    ? (dataset.duplicateRows / dataset.rowCount) * 100
+    : 0;
+
+const qualityScore = dataset
+  ? Math.max(
+      0,
+      Math.round(
+        100 -
+          missingPercentage -
+          duplicatePercentage
+      )
+    )
+  : 0;
+
+const qualityStatus =
+  qualityScore >= 80
+    ? "Good Quality"
+    : qualityScore >= 50
+    ? "Needs Cleaning"
+    : "Poor Quality";
   return (
     <div className="app">
       <div className="container">
@@ -136,7 +167,20 @@ const numericColumns = dataset
                 <p>{dataset.duplicateRows}</p>
               </div>
             </div>
+          <div className="quality-box">
+  <h3>Data Quality Score</h3>
 
+  <div className="score">
+    {qualityScore}
+    <span>/100</span>
+  </div>
+
+  <p>{qualityStatus}</p>
+
+  <small>
+  Score is calculated using missing value and duplicate row percentages.
+</small>
+</div>        
             <div className="columns-box">
               <h3>Columns</h3>
 
