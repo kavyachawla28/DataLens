@@ -1,12 +1,20 @@
 const express = require("express");
 const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
 
 const { uploadCSV } = require("../controllers/csvController");
 
 const router = express.Router();
 
+const uploadPath = path.join(__dirname, "../uploads");
+
+if (!fs.existsSync(uploadPath)) {
+  fs.mkdirSync(uploadPath);
+}
+
 const upload = multer({
-  dest: "uploads/",
+  dest: uploadPath,
   limits: {
     fileSize: 2 * 1024 * 1024,
   },

@@ -1,122 +1,157 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from "react";
+import axios from "axios";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [file, setFile] = useState(null);
+  const [dataset, setDataset] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleFileChange = (event) => {
+    setFile(event.target.files[0]);
+    setDataset(null);
+    setError("");
+  };
+
+  const handleUpload = async () => {
+    if (!file) {
+      setError("Please select a CSV file");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      const formData = new FormData();
+
+      formData.append("file", file);
+
+      const response = await axios.post(
+        "http://localhost:5000/api/csv/upload",
+        formData
+      );
+
+      setDataset(response.data.dataset);
+    } catch (error) {
+      setError(
+        error.response?.data?.message || "Failed to upload CSV file"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app">
+      <div className="container">
+        <h1>DataLens</h1>
 
-      <div className="ticks"></div>
+        <p className="subtitle">
+          Smart CSV Analytics Dashboard
+        </p>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        <div className="upload-box">
+          <h2>Upload your CSV file</h2>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleFileChange}
+          />
+
+          {file && (
+            <p className="file-name">
+              Selected file: {file.name}
+            </p>
+          )}
+
+          <button
+            onClick={handleUpload}
+            disabled={loading}
+          >
+            {loading ? "Analyzing..." : "Analyze CSV"}
+          </button>
+
+          {error && (
+            <p className="error-message">{error}</p>
+          )}
+        </div>
+
+        {dataset && (
+          <div className="results">
+            <h2>Dataset Summary</h2>
+
+            <p className="dataset-name">
+              {dataset.fileName}
+            </p>
+
+            <div className="cards">
+              <div className="card">
+                <h3>Total Rows</h3>
+                <p>{dataset.rowCount}</p>
+              </div>
+
+              <div className="card">
+                <h3>Total Columns</h3>
+                <p>{dataset.columnCount}</p>
+              </div>
+
+              <div className="card">
+                <h3>Missing Values</h3>
+                <p>{dataset.missingValues}</p>
+              </div>
+
+              <div className="card">
+                <h3>Duplicate Rows</h3>
+                <p>{dataset.duplicateRows}</p>
+              </div>
+            </div>
+
+            <div className="columns-box">
+              <h3>Columns</h3>
+
+              <div className="column-list">
+                {dataset.columns.map((column, index) => (
+                  <span key={index}>
+                    {column}
+                  </span>
+                ))}
+              </div>
+            <div className="preview-box">
+  <h3>Data Preview</h3>
+
+  <div className="table-container">
+    <table>
+      <thead>
+        <tr>
+          {dataset.columns.map((column, index) => (
+            <th key={index}>{column}</th>
+          ))}
+        </tr>
+      </thead>
+
+      <tbody>
+        {dataset.data.slice(0, 5).map((row, rowIndex) => (
+          <tr key={rowIndex}>
+            {dataset.columns.map((column, columnIndex) => (
+              <td key={columnIndex}>
+                {row[column] || "-"}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
-export default App
+export default App;
