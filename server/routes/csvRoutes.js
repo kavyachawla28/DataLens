@@ -3,7 +3,10 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 
-const { uploadCSV } = require("../controllers/csvController");
+const {
+  uploadCSV,
+  cleanDataset,
+} = require("../controllers/csvController");
 
 const router = express.Router();
 
@@ -15,9 +18,11 @@ if (!fs.existsSync(uploadPath)) {
 
 const upload = multer({
   dest: uploadPath,
+
   limits: {
     fileSize: 2 * 1024 * 1024,
   },
+
   fileFilter: (req, file, cb) => {
     if (
       file.mimetype === "text/csv" ||
@@ -30,6 +35,15 @@ const upload = multer({
   },
 });
 
-router.post("/upload", upload.single("file"), uploadCSV);
+router.post(
+  "/upload",
+  upload.single("file"),
+  uploadCSV
+);
+
+router.post(
+  "/clean",
+  cleanDataset
+);
 
 module.exports = router;

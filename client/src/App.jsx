@@ -17,13 +17,17 @@ function App() {
   const [file, setFile] = useState(null);
   const [dataset, setDataset] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [cleaning, setCleaning] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [selectedColumn, setSelectedColumn] = useState("");
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
     setDataset(null);
+    setSelectedColumn("");
     setError("");
+    setSuccessMessage("");
   };
 
   const handleUpload = async () => {
@@ -35,6 +39,7 @@ function App() {
     try {
       setLoading(true);
       setError("");
+      setSuccessMessage("");
 
       const formData = new FormData();
 
@@ -46,62 +51,120 @@ function App() {
       );
 
       setDataset(response.data.dataset);
+      setSelectedColumn("");
     } catch (error) {
       setError(
-        error.response?.data?.message || "Failed to upload CSV file"
+        error.response?.data?.message ||
+          "Failed to upload CSV file"
       );
     } finally {
       setLoading(false);
     }
   };
 
-const numericColumns = dataset
-  ? dataset.columns.filter((column) =>
-      dataset.data.some(
-        (row) =>
-          row[column] !== "" &&
-          !isNaN(Number(row[column]))
+  const handleCleanDataset = async () => {
+    if (!dataset) {
+      return;
+    }
+
+    try {
+      setCleaning(true);
+      setError("");
+      setSuccessMessage("");
+
+      const response = await axios.post(
+        "http://localhost:5000/api/csv/clean",
+        {
+          data: dataset.data,
+        }
+      );
+
+      const cleanedData = response.data.data;
+
+      const columns =
+        cleanedData.length > 0
+          ? Object.keys(cleanedData[0])
+          : dataset.columns;
+
+      setDataset((previousDataset) => ({
+        ...previousDataset,
+        data: cleanedData,
+        columns,
+        rowCount: cleanedData.length,
+        columnCount: columns.length,
+        missingValues: 0,
+        duplicateRows: 0,
+      }));
+
+      setSelectedColumn("");
+
+      setSuccessMessage(
+        `Dataset cleaned successfully. ${response.data.originalRows} rows reduced to ${response.data.cleanedRows} rows.`
+      );
+    } catch (error) {
+      setError(
+        error.response?.data?.message ||
+          "Failed to clean dataset"
+      );
+    } finally {
+      setCleaning(false);
+    }
+  };
+
+  const numericColumns = dataset
+    ? dataset.columns.filter((column) =>
+        dataset.data.some(
+          (row) =>
+            row[column] !== "" &&
+            row[column] !== "N/A" &&
+            !isNaN(Number(row[column]))
+        )
       )
-    )
-  : [];
-  const chartData =
-  dataset && selectedColumn
-    ? dataset.data.map((row, index) => ({
-        name: row.Name || `Row ${index + 1}`,
-        value: Number(row[selectedColumn]) || 0,
-      }))
     : [];
-const totalCells = dataset
-  ? dataset.rowCount * dataset.columnCount
-  : 0;
 
-const missingPercentage =
-  totalCells > 0
-    ? (dataset.missingValues / totalCells) * 100
+  const chartData =
+    dataset && selectedColumn
+      ? dataset.data.map((row, index) => ({
+          name: row.Name || `Row ${index + 1}`,
+          value:
+            row[selectedColumn] === "N/A"
+              ? 0
+              : Number(row[selectedColumn]) || 0,
+        }))
+      : [];
+
+  const totalCells = dataset
+    ? dataset.rowCount * dataset.columnCount
     : 0;
 
-const duplicatePercentage =
-  dataset && dataset.rowCount > 0
-    ? (dataset.duplicateRows / dataset.rowCount) * 100
-    : 0;
+  const missingPercentage =
+    totalCells > 0
+      ? (dataset.missingValues / totalCells) * 100
+      : 0;
 
-const qualityScore = dataset
-  ? Math.max(
-      0,
-      Math.round(
-        100 -
-          missingPercentage -
-          duplicatePercentage
+  const duplicatePercentage =
+    dataset && dataset.rowCount > 0
+      ? (dataset.duplicateRows / dataset.rowCount) * 100
+      : 0;
+
+  const qualityScore = dataset
+    ? Math.max(
+        0,
+        Math.round(
+          100 -
+            missingPercentage -
+            duplicatePercentage
+        )
       )
-    )
-  : 0;
+    : 0;
 
-const qualityStatus =
-  qualityScore >= 80
-    ? "Good Quality"
-    : qualityScore >= 50
-    ? "Needs Cleaning"
-    : "Poor Quality";
+  const qualityStatus =
+    qualityScore >= 80
+      ? "Good Quality"
+      : qualityScore >= 50
+      ? "Needs Cleaning"
+      : "Poor Quality";
+
   return (
     <div className="app">
       <div className="container">
@@ -136,6 +199,12 @@ const qualityStatus =
           {error && (
             <p className="error-message">{error}</p>
           )}
+
+          {successMessage && (
+            <p className="success-message">
+              {successMessage}
+            </p>
+          )}
         </div>
 
         {dataset && (
@@ -167,99 +236,142 @@ const qualityStatus =
                 <p>{dataset.duplicateRows}</p>
               </div>
             </div>
-          <div className="quality-box">
-  <h3>Data Quality Score</h3>
 
-  <div className="score">
-    {qualityScore}
-    <span>/100</span>
-  </div>
+            <div className="quality-box">
+              <h3>Data Quality Score</h3>
 
-  <p>{qualityStatus}</p>
+              <div className="score">
+                {qualityScore}
+                <span>/100</span>
+              </div>
 
-  <small>
-  Score is calculated using missing value and duplicate row percentages.
-</small>
-</div>        
+              <p>{qualityStatus}</p>
+
+              <small>
+                Score is calculated using missing value and
+                duplicate row percentages.
+              </small>
+
+              <div className="clean-action">
+                <button
+                  onClick={handleCleanDataset}
+                  disabled={cleaning}
+                >
+                  {cleaning
+                    ? "Cleaning Dataset..."
+                    : "Clean Dataset"}
+                </button>
+              </div>
+            </div>
+
             <div className="columns-box">
               <h3>Columns</h3>
 
               <div className="column-list">
                 {dataset.columns.map((column, index) => (
-                  <span key={index}>
-                    {column}
-                  </span>
+                  <span key={index}>{column}</span>
                 ))}
               </div>
-            <div className="preview-box">
-  <h3>Data Preview</h3>
-{numericColumns.length > 0 && (
-  <div className="chart-box">
-    <h3>Visualize Numeric Data</h3>
 
-    <select
-      value={selectedColumn}
-      onChange={(event) =>
-        setSelectedColumn(event.target.value)
-      }
-    >
-      <option value="">
-        Select a numeric column
-      </option>
+              <div className="preview-box">
+                <h3>Data Preview</h3>
 
-      {numericColumns.map((column, index) => (
-        <option key={index} value={column}>
-          {column}
-        </option>
-      ))}
-    </select>
+                {numericColumns.length > 0 && (
+                  <div className="chart-box">
+                    <h3>Visualize Numeric Data</h3>
 
-    {selectedColumn && (
-      <div className="chart-area">
-        <h3>{selectedColumn} Analysis</h3>
+                    <select
+                      value={selectedColumn}
+                      onChange={(event) =>
+                        setSelectedColumn(
+                          event.target.value
+                        )
+                      }
+                    >
+                      <option value="">
+                        Select a numeric column
+                      </option>
 
-        <ResponsiveContainer width="100%" height={350}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
+                      {numericColumns.map(
+                        (column, index) => (
+                          <option
+                            key={index}
+                            value={column}
+                          >
+                            {column}
+                          </option>
+                        )
+                      )}
+                    </select>
 
-            <XAxis dataKey="name" />
+                    {selectedColumn && (
+                      <div className="chart-area">
+                        <h3>
+                          {selectedColumn} Analysis
+                        </h3>
 
-            <YAxis />
+                        <ResponsiveContainer
+                          width="100%"
+                          height={350}
+                        >
+                          <BarChart data={chartData}>
+                            <CartesianGrid
+                              strokeDasharray="3 3"
+                            />
 
-            <Tooltip />
+                            <XAxis dataKey="name" />
 
-            <Bar dataKey="value" fill="#2563eb" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    )}
-  </div>
-)}
+                            <YAxis />
 
-  <div className="table-container">
-    <table>
-      <thead>
-        <tr>
-          {dataset.columns.map((column, index) => (
-            <th key={index}>{column}</th>
-          ))}
-        </tr>
-      </thead>
+                            <Tooltip />
 
-      <tbody>
-        {dataset.data.slice(0, 5).map((row, rowIndex) => (
-          <tr key={rowIndex}>
-            {dataset.columns.map((column, columnIndex) => (
-              <td key={columnIndex}>
-                {row[column] || "-"}
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-</div>
+                            <Bar
+                              dataKey="value"
+                              fill="#2563eb"
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        {dataset.columns.map(
+                          (column, index) => (
+                            <th key={index}>
+                              {column}
+                            </th>
+                          )
+                        )}
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {dataset.data
+                        .slice(0, 5)
+                        .map((row, rowIndex) => (
+                          <tr key={rowIndex}>
+                            {dataset.columns.map(
+                              (column, columnIndex) => (
+                                <td key={columnIndex}>
+                                  {row[column] === "" ||
+                                  row[column] === null ||
+                                  row[column] === undefined
+                                    ? "-"
+                                    : row[column]}
+                                </td>
+                              )
+                            )}
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         )}
