@@ -111,6 +111,49 @@ function App() {
     }
   };
 
+  const handleDownloadCSV = () => {
+  if (!dataset || dataset.data.length === 0) {
+    setError("No dataset available to download");
+    return;
+  }
+
+  const headers = dataset.columns;
+
+  const csvRows = [
+    headers.join(","),
+    ...dataset.data.map((row) =>
+      headers
+        .map((column) => {
+          const value = row[column] ?? "";
+
+          return `"${String(value).replace(/"/g, '""')}"`;
+        })
+        .join(",")
+    ),
+  ];
+
+  const csvContent = csvRows.join("\n");
+
+  const blob = new Blob([csvContent], {
+    type: "text/csv;charset=utf-8;",
+  });
+
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = `cleaned_${dataset.fileName}`;
+
+  document.body.appendChild(link);
+
+  link.click();
+
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+};
+
   const numericColumns = dataset
     ? dataset.columns.filter((column) =>
         dataset.data.some(
@@ -253,15 +296,28 @@ function App() {
               </small>
 
               <div className="clean-action">
-                <button
-                  onClick={handleCleanDataset}
-                  disabled={cleaning}
-                >
-                  {cleaning
-                    ? "Cleaning Dataset..."
-                    : "Clean Dataset"}
-                </button>
-              </div>
+  {dataset.missingValues > 0 ||
+  dataset.duplicateRows > 0 ? (
+    <button
+      onClick={handleCleanDataset}
+      disabled={cleaning}
+    >
+      {cleaning
+        ? "Cleaning Dataset..."
+        : "Clean Dataset"}
+    </button>
+  ) : (
+    <>
+      <p className="clean-status">
+        ✓ Dataset is Clean
+      </p>
+
+      <button onClick={handleDownloadCSV}>
+        Download Cleaned CSV
+      </button>
+    </>
+  )}
+</div>
             </div>
 
             <div className="columns-box">
