@@ -247,3 +247,35 @@ tbody tr:hover {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin: 25px 0;
+}
+
+.insight-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.insight-card h4 {
+  margin: 0 0 10px;
+  color: #64748b;
+}
+
+.insight-card p {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+@media (max-width: 768px) {
+  .insights-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

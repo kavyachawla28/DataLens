@@ -175,7 +175,30 @@ function App() {
               : Number(row[selectedColumn]) || 0,
         }))
       : [];
+const columnInsights =
+  dataset && selectedColumn
+    ? (() => {
+        const values = dataset.data
+          .map((row) => Number(row[selectedColumn]))
+          .filter((value) => !isNaN(value));
 
+        if (values.length === 0) {
+          return null;
+        }
+
+        const sum = values.reduce(
+          (total, value) => total + value,
+          0
+        );
+
+        return {
+          average: sum / values.length,
+          minimum: Math.min(...values),
+          maximum: Math.max(...values),
+          sum,
+        };
+      })()
+    : null;
   const totalCells = dataset
     ? dataset.rowCount * dataset.columnCount
     : 0;
@@ -361,37 +384,66 @@ function App() {
                     </select>
 
                     {selectedColumn && (
-                      <div className="chart-area">
-                        <h3>
-                          {selectedColumn} Analysis
-                        </h3>
+  <div className="chart-area">
+    <h3>{selectedColumn} Analysis</h3>
 
-                        <ResponsiveContainer
-                          width="100%"
-                          height={350}
-                        >
-                          <BarChart data={chartData}>
-                            <CartesianGrid
-                              strokeDasharray="3 3"
-                            />
+    {columnInsights && (
+      <div className="insights-grid">
+        <div className="insight-card">
+          <h4>Average</h4>
+          <p>{columnInsights.average.toFixed(2)}</p>
+        </div>
 
-                            <XAxis dataKey="name" />
+        <div className="insight-card">
+          <h4>Minimum</h4>
+          <p>{columnInsights.minimum}</p>
+        </div>
 
-                            <YAxis />
+        <div className="insight-card">
+          <h4>Maximum</h4>
+          <p>{columnInsights.maximum}</p>
+        </div>
 
-                            <Tooltip />
+        <div className="insight-card">
+          <h4>Sum</h4>
+          <p>{columnInsights.sum}</p>
+        </div>
+      </div>
+    )}
 
-                            <Bar
-                              dataKey="value"
-                              fill="#2563eb"
-                            />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-                  </div>
-                )}
+    <ResponsiveContainer width="100%" height={350}>
+      <BarChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" />
 
+        <XAxis dataKey="name" />
+
+        <YAxis />
+
+        <Tooltip />
+
+        <Bar dataKey="value" fill="#2563eb" />
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
+)}
+
+    <ResponsiveContainer width="100%" height={350}>
+      <BarChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" />
+
+        <XAxis dataKey="name" />
+
+        <YAxis />
+
+        <Tooltip />
+
+        <Bar dataKey="value" fill="#2563eb" />
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
+)}
+
+                      
                 <div className="table-container">
                   <table>
                     <thead>
