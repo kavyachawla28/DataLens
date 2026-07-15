@@ -223,6 +223,27 @@ const columnTypes = dataset
       };
     })
   : [];
+  const missingValueAnalysis = dataset
+  ? dataset.columns.map((column) => {
+      const missingCount = dataset.data.filter(
+        (row) =>
+          row[column] === "" ||
+          row[column] === null ||
+          row[column] === undefined
+      ).length;
+
+      const missingPercentage =
+        dataset.rowCount > 0
+          ? (missingCount / dataset.rowCount) * 100
+          : 0;
+
+      return {
+        column,
+        missingCount,
+        missingPercentage,
+      };
+    })
+  : [];
   const totalCells = dataset
     ? dataset.rowCount * dataset.columnCount
     : 0;
@@ -382,6 +403,28 @@ const columnTypes = dataset
       </div>
     ))}
   </div>
+  <div className="missing-analysis-box">
+  <h3>Missing Value Analysis</h3>
+
+  <div className="missing-analysis-grid">
+    {missingValueAnalysis.map((item, index) => (
+      <div
+        className="missing-analysis-card"
+        key={index}
+      >
+        <h4>{item.column}</h4>
+
+        <p>
+          {item.missingCount} Missing
+        </p>
+
+        <span>
+          {item.missingPercentage.toFixed(2)}%
+        </span>
+      </div>
+    ))}
+  </div>
+</div>
 
               <div className="preview-box">
                 <h3>Data Preview</h3>
