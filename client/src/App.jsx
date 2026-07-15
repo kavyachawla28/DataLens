@@ -1,5 +1,16 @@
 import { useState } from "react";
 import axios from "axios";
+
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
 import "./App.css";
 
 function App() {
@@ -7,6 +18,7 @@ function App() {
   const [dataset, setDataset] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [selectedColumn, setSelectedColumn] = useState("");
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
@@ -43,6 +55,22 @@ function App() {
     }
   };
 
+const numericColumns = dataset
+  ? dataset.columns.filter((column) =>
+      dataset.data.some(
+        (row) =>
+          row[column] !== "" &&
+          !isNaN(Number(row[column]))
+      )
+    )
+  : [];
+  const chartData =
+  dataset && selectedColumn
+    ? dataset.data.map((row, index) => ({
+        name: row.Name || `Row ${index + 1}`,
+        value: Number(row[selectedColumn]) || 0,
+      }))
+    : [];
   return (
     <div className="app">
       <div className="container">
@@ -121,6 +149,48 @@ function App() {
               </div>
             <div className="preview-box">
   <h3>Data Preview</h3>
+{numericColumns.length > 0 && (
+  <div className="chart-box">
+    <h3>Visualize Numeric Data</h3>
+
+    <select
+      value={selectedColumn}
+      onChange={(event) =>
+        setSelectedColumn(event.target.value)
+      }
+    >
+      <option value="">
+        Select a numeric column
+      </option>
+
+      {numericColumns.map((column, index) => (
+        <option key={index} value={column}>
+          {column}
+        </option>
+      ))}
+    </select>
+
+    {selectedColumn && (
+      <div className="chart-area">
+        <h3>{selectedColumn} Analysis</h3>
+
+        <ResponsiveContainer width="100%" height={350}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+
+            <XAxis dataKey="name" />
+
+            <YAxis />
+
+            <Tooltip />
+
+            <Bar dataKey="value" fill="#2563eb" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    )}
+  </div>
+)}
 
   <div className="table-container">
     <table>
