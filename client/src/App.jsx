@@ -21,6 +21,7 @@ function App() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [selectedColumn, setSelectedColumn] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
@@ -271,6 +272,35 @@ const columnTypes = dataset
       return duplicateRows;
     })()
   : [];
+const categoricalColumns = columnTypes
+  .filter((column) => column.type === "Text")
+  .map((column) => column.name);
+
+const categoricalData =
+  dataset && selectedCategory
+    ? (() => {
+        const valueCounts = {};
+
+        dataset.data.forEach((row) => {
+          const value =
+            row[selectedCategory] === "" ||
+            row[selectedCategory] === null ||
+            row[selectedCategory] === undefined
+              ? "Missing"
+              : row[selectedCategory];
+
+          valueCounts[value] =
+            (valueCounts[value] || 0) + 1;
+        });
+
+        return Object.entries(valueCounts).map(
+          ([name, value]) => ({
+            name,
+            value,
+          })
+        );
+      })()
+    : [];
   const totalCells = dataset
     ? dataset.rowCount * dataset.columnCount
     : 0;
@@ -452,7 +482,43 @@ const columnTypes = dataset
     ))}
   </div>
 </div>
+<div className="categorical-box">
+  <h3>Categorical Data Analysis</h3>
 
+  <select
+    value={selectedCategory}
+    onChange={(event) =>
+      setSelectedCategory(event.target.value)
+    }
+  >
+    <option value="">
+      Select a text column
+    </option>
+
+    {categoricalColumns.map((column, index) => (
+      <option key={index} value={column}>
+        {column}
+      </option>
+    ))}
+  </select>
+
+  {selectedCategory && (
+    <div className="category-results">
+      <h4>{selectedCategory} Distribution</h4>
+
+      {categoricalData.map((item, index) => (
+        <div
+          className="category-row"
+          key={index}
+        >
+          <span>{item.name}</span>
+
+          <strong>{item.value}</strong>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
               <div className="preview-box">
                 <div className="duplicate-analysis-box">
   <h3>Duplicate Row Analysis</h3>
