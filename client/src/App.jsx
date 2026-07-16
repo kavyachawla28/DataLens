@@ -1,6 +1,12 @@
 import { useState } from "react";
 import axios from "axios";
-
+import {
+  FaDatabase,
+  FaUpload,
+  FaChartBar,
+  FaDownload,
+  FaCheckCircle,
+} from "react-icons/fa";
 import {
   BarChart,
   Bar,
@@ -22,6 +28,11 @@ function App() {
   const [successMessage, setSuccessMessage] = useState("");
   const [selectedColumn, setSelectedColumn] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortColumn, setSortColumn] = useState("");
+const [sortOrder, setSortOrder] = useState("asc");
+const [filterColumn, setFilterColumn] = useState("");
+const [filterValue, setFilterValue] = useState("");
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
@@ -176,6 +187,49 @@ function App() {
               : Number(row[selectedColumn]) || 0,
         }))
       : [];
+  const filteredData = dataset
+  ? dataset.data
+      .filter((row) => {
+        const matchesSearch =
+          dataset.columns.some((column) =>
+            String(row[column] || "")
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase())
+          );
+
+        if (!filterColumn || !filterValue) {
+          return matchesSearch;
+        }
+
+        const matchesFilter =
+          String(row[filterColumn] || "")
+            .toLowerCase()
+            .includes(filterValue.toLowerCase());
+
+        return matchesSearch && matchesFilter;
+      })
+      .sort((a, b) => {
+        if (!sortColumn) return 0;
+
+        const valueA = a[sortColumn];
+        const valueB = b[sortColumn];
+
+        const numA = Number(valueA);
+        const numB = Number(valueB);
+
+        let comparison = 0;
+
+        if (!isNaN(numA) && !isNaN(numB)) {
+          comparison = numA - numB;
+        } else {
+          comparison = String(valueA).localeCompare(String(valueB));
+        }
+
+        return sortOrder === "asc"
+          ? comparison
+          : -comparison;
+      })
+  : [];
 const columnInsights =
   dataset && selectedColumn
     ? (() => {
@@ -336,11 +390,38 @@ const categoricalData =
   return (
     <div className="app">
       <div className="container">
-        <h1>DataLens</h1>
+       <div className="hero">
 
-        <p className="subtitle">
-          Smart CSV Analytics Dashboard
-        </p>
+  <div className="hero-icon">
+    <FaDatabase />
+  </div>
+
+  <h1>DataLens</h1>
+
+  <p className="subtitle">
+    Professional CSV Analytics Platform
+  </p>
+
+  <div className="hero-tags">
+
+    <span>
+      <FaUpload />
+      Upload
+    </span>
+
+    <span>
+      <FaChartBar />
+      Analyze
+    </span>
+
+    <span>
+      <FaDownload />
+      Export
+    </span>
+
+  </div>
+
+</div>
 
         <div className="upload-box">
           <h2>Upload your CSV file</h2>
@@ -519,6 +600,78 @@ const categoricalData =
     </div>
   )}
 </div>
+<div className="search-box">
+<div className="sort-box">
+<div className="filter-box">
+
+<select
+value={filterColumn}
+onChange={(e)=>setFilterColumn(e.target.value)}
+>
+
+<option value="">
+Filter Column
+</option>
+
+{dataset.columns.map((column)=>(
+<option key={column} value={column}>
+{column}
+</option>
+))}
+
+</select>
+
+<input
+type="text"
+placeholder="Filter Value"
+value={filterValue}
+onChange={(e)=>setFilterValue(e.target.value)}
+/>
+
+</div>
+  <select
+    value={sortColumn}
+    onChange={(e) =>
+      setSortColumn(e.target.value)
+    }
+  >
+    <option value="">
+      Sort By
+    </option>
+
+    {dataset.columns.map((column) => (
+      <option key={column} value={column}>
+        {column}
+      </option>
+    ))}
+  </select>
+
+  <select
+    value={sortOrder}
+    onChange={(e) =>
+      setSortOrder(e.target.value)
+    }
+  >
+    <option value="asc">
+      Ascending
+    </option>
+
+    <option value="desc">
+      Descending
+    </option>
+  </select>
+
+</div>
+  <input
+    type="text"
+    placeholder="Search records..."
+    value={searchTerm}
+    onChange={(e) =>
+      setSearchTerm(e.target.value)
+    }
+  />
+
+</div>
               <div className="preview-box">
                 <div className="duplicate-analysis-box">
   <h3>Duplicate Row Analysis</h3>
@@ -667,24 +820,16 @@ const categoricalData =
                     </thead>
 
                     <tbody>
-                      {dataset.data
-                        .slice(0, 5)
-                        .map((row, rowIndex) => (
-                          <tr key={rowIndex}>
-                            {dataset.columns.map(
-                              (column, columnIndex) => (
-                                <td key={columnIndex}>
-                                  {row[column] === "" ||
-                                  row[column] === null ||
-                                  row[column] === undefined
-                                    ? "-"
-                                    : row[column]}
-                                </td>
-                              )
-                            )}
-                          </tr>
-                        ))}
-                    </tbody>
+  {filteredData.slice(0, 5).map((row, rowIndex) => (
+    <tr key={rowIndex}>
+      {dataset.columns.map((column, columnIndex) => (
+        <td key={columnIndex}>
+          {row[column] || "-"}
+        </td>
+      ))}
+    </tr>
+  ))}
+</tbody>
                   </table>
                 </div>
               </div>
