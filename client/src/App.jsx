@@ -1,3 +1,11 @@
+import Header from "./components/Header";
+import UploadBox from "./components/UploadBox";
+import SummaryCards from "./components/SummaryCards";
+import QualityScore from "./components/QualityScore";
+import SearchSortFilter from "./components/SearchSortFilter";
+import DataPreview from "./components/DataPreview";
+import Charts from "./components/Charts";
+import DuplicateAnalysis from "./components/DuplicateAnalysis";
 import { useState } from "react";
 import axios from "axios";
 import {
@@ -254,6 +262,7 @@ const columnInsights =
         };
       })()
     : null;
+    
 const columnTypes = dataset
   ? dataset.columns.map((column) => {
       const values = dataset.data
@@ -392,69 +401,17 @@ const categoricalData =
       <div className="container">
        <div className="hero">
 
-  <div className="hero-icon">
-    <FaDatabase />
-  </div>
-
-  <h1>DataLens</h1>
-
-  <p className="subtitle">
-    Professional CSV Analytics Platform
-  </p>
-
-  <div className="hero-tags">
-
-    <span>
-      <FaUpload />
-      Upload
-    </span>
-
-    <span>
-      <FaChartBar />
-      Analyze
-    </span>
-
-    <span>
-      <FaDownload />
-      Export
-    </span>
-
-  </div>
+ <Header />
 
 </div>
 
-        <div className="upload-box">
-          <h2>Upload your CSV file</h2>
-
-          <input
-            type="file"
-            accept=".csv"
-            onChange={handleFileChange}
-          />
-
-          {file && (
-            <p className="file-name">
-              Selected file: {file.name}
-            </p>
-          )}
-
-          <button
-            onClick={handleUpload}
-            disabled={loading}
-          >
-            {loading ? "Analyzing..." : "Analyze CSV"}
-          </button>
-
-          {error && (
-            <p className="error-message">{error}</p>
-          )}
-
-          {successMessage && (
-            <p className="success-message">
-              {successMessage}
-            </p>
-          )}
-        </div>
+       <UploadBox
+  file={file}
+  loading={loading}
+  error={error}
+  handleFileChange={handleFileChange}
+  handleUpload={handleUpload}
+/>
 
         {dataset && (
           <div className="results">
@@ -464,68 +421,14 @@ const categoricalData =
               {dataset.fileName}
             </p>
 
-            <div className="cards">
-              <div className="card">
-                <h3>Total Rows</h3>
-                <p>{dataset.rowCount}</p>
-              </div>
-
-              <div className="card">
-                <h3>Total Columns</h3>
-                <p>{dataset.columnCount}</p>
-              </div>
-
-              <div className="card">
-                <h3>Missing Values</h3>
-                <p>{dataset.missingValues}</p>
-              </div>
-
-              <div className="card">
-                <h3>Duplicate Rows</h3>
-                <p>{dataset.duplicateRows}</p>
-              </div>
-            </div>
-
-            <div className="quality-box">
-              <h3>Data Quality Score</h3>
-
-              <div className="score">
-                {qualityScore}
-                <span>/100</span>
-              </div>
-
-              <p>{qualityStatus}</p>
-
-              <small>
-                Score is calculated using missing value and
-                duplicate row percentages.
-              </small>
-
-              <div className="clean-action">
-  {dataset.missingValues > 0 ||
-  dataset.duplicateRows > 0 ? (
-    <button
-      onClick={handleCleanDataset}
-      disabled={cleaning}
-    >
-      {cleaning
-        ? "Cleaning Dataset..."
-        : "Clean Dataset"}
-    </button>
-  ) : (
-    <>
-      <p className="clean-status">
-        ✓ Dataset is Clean
-      </p>
-
-      <button onClick={handleDownloadCSV}>
-        Download Cleaned CSV
-      </button>
-    </>
-  )}
-</div>
-            </div>
-
+            <SummaryCards dataset={dataset} />
+            <QualityScore
+  qualityScore={qualityScore}
+  qualityStatus={qualityStatus}
+  cleanDataset={handleCleanDataset}
+  downloading={cleaning}
+  downloadCleanedCSV={handleDownloadCSV}
+/>
             <div className="columns-box">
   <h3>Column Profiling</h3>
 
@@ -600,238 +503,35 @@ const categoricalData =
     </div>
   )}
 </div>
-<div className="search-box">
-<div className="sort-box">
-<div className="filter-box">
-
-<select
-value={filterColumn}
-onChange={(e)=>setFilterColumn(e.target.value)}
->
-
-<option value="">
-Filter Column
-</option>
-
-{dataset.columns.map((column)=>(
-<option key={column} value={column}>
-{column}
-</option>
-))}
-
-</select>
-
-<input
-type="text"
-placeholder="Filter Value"
-value={filterValue}
-onChange={(e)=>setFilterValue(e.target.value)}
+<SearchSortFilter
+  searchTerm={searchTerm}
+  setSearchTerm={setSearchTerm}
+  sortColumn={sortColumn}
+  setSortColumn={setSortColumn}
+  sortOrder={sortOrder}
+  setSortOrder={setSortOrder}
+  filterColumn={filterColumn}
+  setFilterColumn={setFilterColumn}
+  filterValue={filterValue}
+  setFilterValue={setFilterValue}
+  dataset={dataset}
 />
-
-</div>
-  <select
-    value={sortColumn}
-    onChange={(e) =>
-      setSortColumn(e.target.value)
-    }
-  >
-    <option value="">
-      Sort By
-    </option>
-
-    {dataset.columns.map((column) => (
-      <option key={column} value={column}>
-        {column}
-      </option>
-    ))}
-  </select>
-
-  <select
-    value={sortOrder}
-    onChange={(e) =>
-      setSortOrder(e.target.value)
-    }
-  >
-    <option value="asc">
-      Ascending
-    </option>
-
-    <option value="desc">
-      Descending
-    </option>
-  </select>
-
-</div>
-  <input
-    type="text"
-    placeholder="Search records..."
-    value={searchTerm}
-    onChange={(e) =>
-      setSearchTerm(e.target.value)
-    }
-  />
-
-</div>
               <div className="preview-box">
-                <div className="duplicate-analysis-box">
-  <h3>Duplicate Row Analysis</h3>
-
-  {duplicateAnalysis.length > 0 ? (
-    <>
-      <p>
-        Found {dataset.duplicateRows} duplicate row(s)
-      </p>
-
-      <div className="duplicate-list">
-        {duplicateAnalysis.map((item, index) => (
-          <div
-            className="duplicate-card"
-            key={index}
-          >
-            <h4>
-              Duplicate Group {index + 1}
-            </h4>
-
-            <p>
-              Appears {item.count} times
-            </p>
-
-            <div className="duplicate-row-data">
-              {dataset.columns.map(
-                (column, columnIndex) => (
-                  <span key={columnIndex}>
-                    <strong>{column}:</strong>{" "}
-                    {item.row[column] || "-"}
-                  </span>
-                )
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </>
-  ) : (
-    <p>No duplicate rows found ✓</p>
-  )}
-</div>
+                
                 <h3>Data Preview</h3>
 
-                {numericColumns.length > 0 && (
-                  <div className="chart-box">
-                    <h3>Visualize Numeric Data</h3>
-
-                    <select
-                      value={selectedColumn}
-                      onChange={(event) =>
-                        setSelectedColumn(
-                          event.target.value
-                        )
-                      }
-                    >
-                      <option value="">
-                        Select a numeric column
-                      </option>
-
-                      {numericColumns.map(
-                        (column, index) => (
-                          <option
-                            key={index}
-                            value={column}
-                          >
-                            {column}
-                          </option>
-                        )
-                      )}
-                    </select>
-
-                    {selectedColumn && (
-  <div className="chart-area">
-    <h3>{selectedColumn} Analysis</h3>
-
-    {columnInsights && (
-      <div className="insights-grid">
-        <div className="insight-card">
-          <h4>Average</h4>
-          <p>{columnInsights.average.toFixed(2)}</p>
-        </div>
-
-        <div className="insight-card">
-          <h4>Minimum</h4>
-          <p>{columnInsights.minimum}</p>
-        </div>
-
-        <div className="insight-card">
-          <h4>Maximum</h4>
-          <p>{columnInsights.maximum}</p>
-        </div>
-
-        <div className="insight-card">
-          <h4>Sum</h4>
-          <p>{columnInsights.sum}</p>
-        </div>
-      </div>
-    )}
-
-    <ResponsiveContainer width="100%" height={350}>
-      <BarChart data={chartData}>
-        <CartesianGrid strokeDasharray="3 3" />
-
-        <XAxis dataKey="name" />
-
-        <YAxis />
-
-        <Tooltip />
-
-        <Bar dataKey="value" fill="#2563eb" />
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
-)}
-
-    <ResponsiveContainer width="100%" height={350}>
-      <BarChart data={chartData}>
-        <CartesianGrid strokeDasharray="3 3" />
-
-        <XAxis dataKey="name" />
-
-        <YAxis />
-
-        <Tooltip />
-
-        <Bar dataKey="value" fill="#2563eb" />
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
-)}
-
+               <Charts
+  numericColumns={numericColumns}
+  selectedColumn={selectedColumn}
+  setSelectedColumn={setSelectedColumn}
+  chartData={chartData}
+  columnInsights={columnInsights}
+/>
                       
-                <div className="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        {dataset.columns.map(
-                          (column, index) => (
-                            <th key={index}>
-                              {column}
-                            </th>
-                          )
-                        )}
-                      </tr>
-                    </thead>
-
-                    <tbody>
-  {filteredData.slice(0, 5).map((row, rowIndex) => (
-    <tr key={rowIndex}>
-      {dataset.columns.map((column, columnIndex) => (
-        <td key={columnIndex}>
-          {row[column] || "-"}
-        </td>
-      ))}
-    </tr>
-  ))}
-</tbody>
-                  </table>
-                </div>
+                <DataPreview
+  dataset={dataset}
+  filteredData={filteredData}
+/>
               </div>
             </div>
           </div>
