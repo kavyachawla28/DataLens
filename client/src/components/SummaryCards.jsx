@@ -1,4 +1,14 @@
 function SummaryCards({ dataset }) {
+  const completeness =
+    dataset.rowCount * dataset.columnCount === 0
+      ? 0
+      : (
+          ((dataset.rowCount * dataset.columnCount -
+            dataset.missingValues) /
+            (dataset.rowCount * dataset.columnCount)) *
+          100
+        ).toFixed(1);
+
   return (
     <div className="cards">
       <div className="card">
@@ -19,6 +29,11 @@ function SummaryCards({ dataset }) {
       <div className="card">
         <h3>Duplicate Rows</h3>
         <p>{dataset.duplicateRows}</p>
+      </div>
+
+      <div className="card">
+        <h3>Completeness</h3>
+        <p>{completeness}%</p>
       </div>
     </div>
   );

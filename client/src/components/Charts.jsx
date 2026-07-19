@@ -8,6 +8,33 @@ import {
   Tooltip,
 } from "recharts";
 
+const CustomTooltip = ({ active, payload, label, selectedColumn }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        style={{
+          background: "white",
+          padding: "12px 16px",
+          borderRadius: "10px",
+          border: "1px solid #e2e8f0",
+          boxShadow: "0 8px 20px rgba(0,0,0,.1)",
+        }}
+      >
+        <p>
+          <strong>Record:</strong> {label}
+        </p>
+
+        <p style={{ color: "#2563eb", marginTop: "8px" }}>
+          <strong>{selectedColumn}:</strong>{" "}
+          {payload[0].value.toLocaleString()}
+        </p>
+      </div>
+    );
+  }
+
+  return null;
+};
+
 function Charts({
   numericColumns,
   selectedColumn,
@@ -43,7 +70,13 @@ function Charts({
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip />
+              <Tooltip
+  content={
+    <CustomTooltip
+      selectedColumn={selectedColumn}
+    />
+  }
+/>
               <Bar dataKey="value" fill="#2563eb" />
             </BarChart>
           </ResponsiveContainer>

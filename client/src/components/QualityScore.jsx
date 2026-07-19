@@ -4,7 +4,22 @@ function QualityScore({
   cleanDataset,
   downloading,
   downloadCleanedCSV,
+  exportReport,
 }) {
+  let badgeColor = "#ef4444";
+  let badgeIcon = "🔴";
+
+  if (qualityScore >= 90) {
+    badgeColor = "#16a34a";
+    badgeIcon = "🟢";
+  } else if (qualityScore >= 75) {
+    badgeColor = "#eab308";
+    badgeIcon = "🟡";
+  } else if (qualityScore >= 50) {
+    badgeColor = "#f97316";
+    badgeIcon = "🟠";
+  }
+
   return (
     <div className="quality-box">
       <h3>Data Quality Score</h3>
@@ -14,7 +29,12 @@ function QualityScore({
         <span>/100</span>
       </div>
 
-      <p>{qualityStatus}</p>
+      <div
+        className="quality-badge"
+        style={{ background: badgeColor }}
+      >
+        {badgeIcon} {qualityStatus}
+      </div>
 
       <small>
         Score is calculated using missing value and duplicate row percentages.
@@ -25,10 +45,12 @@ function QualityScore({
 
       {qualityScore < 100 ? (
         <button onClick={cleanDataset}>
-          Clean Dataset
+          🧹 Clean Dataset
         </button>
       ) : (
-        <p>✓ Dataset is Clean</p>
+        <p className="clean-message">
+          ✅ Dataset is already clean
+        </p>
       )}
 
       <br />
@@ -36,7 +58,16 @@ function QualityScore({
       <button onClick={downloadCleanedCSV}>
         {downloading
           ? "Downloading..."
-          : "Download Cleaned CSV"}
+          : "⬇ Download Cleaned CSV"}
+      </button>
+
+      <br />
+
+      <button
+        className="report-btn"
+        onClick={exportReport}
+      >
+        📄 Export Analysis Report
       </button>
     </div>
   );
