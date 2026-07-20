@@ -1,3 +1,9 @@
+import {
+  getHistory,
+  saveHistory,
+  deleteHistory,
+} from "./api/historyApi";
+import { FaTrash } from "react-icons/fa";
 import { jsPDF } from "jspdf";
 import Header from "./components/Header";
 import UploadBox from "./components/UploadBox";
@@ -7,7 +13,7 @@ import SearchSortFilter from "./components/SearchSortFilter";
 import DataPreview from "./components/DataPreview";
 import Charts from "./components/Charts";
 import DuplicateAnalysis from "./components/DuplicateAnalysis";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import {
   FaDatabase,
@@ -43,6 +49,33 @@ function App() {
   const [sortOrder, setSortOrder] = useState("asc");
   const [filterColumn, setFilterColumn] = useState("");
   const [filterValue, setFilterValue] = useState("");
+  const loadHistory = async () => {
+  try {
+    const response = await getHistory();
+    setAnalysisHistory(response.data);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+useEffect(() => {
+  loadHistory();
+}, []);
+
+const handleDeleteHistory = async (id) => {
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this analysis?"
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await deleteHistory(id);
+    await loadHistory();
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
@@ -68,21 +101,32 @@ function App() {
       formData.append("file", file);
 
       const response = await axios.post(
-        "http://localhost:5000/api/csv/upload",
-        formData
-      );
+  "http://localhost:5000/api/csv/upload",
+  formData
+);
+
+console.log("UPLOAD RESPONSE:", response.data);
+console.log("DATASET:", response.data.dataset);
 
       setDataset(response.data.dataset);
+      const totalCells =
+  response.data.dataset.rowCount * response.data.dataset.columnCount;
 
-setAnalysisHistory((previous) => [
-  {
-    fileName: response.data.dataset.fileName,
-    rows: response.data.dataset.rowCount,
-    columns: response.data.dataset.columnCount,
-    time: new Date().toLocaleTimeString(),
-  },
-  ...previous,
-]);
+const qualityScore = Math.round(
+  ((totalCells - response.data.dataset.missingValues) / totalCells) * 100
+);
+
+await saveHistory({
+  fileName: response.data.dataset.fileName,
+  rows: response.data.dataset.rowCount,
+  columns: response.data.dataset.columnCount,
+  missingValues: response.data.dataset.missingValues,
+  duplicateRows: response.data.dataset.duplicateRows,
+  qualityScore,
+});
+
+await loadHistory();
+
 
 setSelectedColumn("");
     } catch (error) {
@@ -111,8 +155,8 @@ setSelectedColumn("");
       );
 
       setDataset(response.data.dataset);
-
-    
+      console.log(response.data.dataset);
+      
       setSelectedColumn("");
       setSuccessMessage(
         `Dataset cleaned successfully. ${response.data.originalRows} rows reduced to ${response.data.cleanedRows} rows.`
@@ -475,20 +519,66 @@ setSelectedColumn("");
             <p className="dataset-name">
               {dataset.fileName}
             </p>
-            <p>History Count: {analysisHistory.length}</p>
 
-            {analysisHistory.length > 0 && (
+            {analysisHistory.length === 0 ? (
+  <div className="history-box">
+    <h3>🕒 Recent Analysis</h3>
+    <p>No analysis history found.</p>
+  </div>
+) : (
               <div className="history-box">
                 <h3>🕒 Recent Analysis</h3>
 
-                {analysisHistory.map((item, index) => (
-                  <div key={index} className="history-item">
-                    <span>📄 {item.fileName}</span>
-                    <span>{item.time}</span>
-                  </div>
-                ))}
+                {analysisHistory.map((item) => (
+  <div key={item._id} className="history-item">
+
+    <div>
+      <strong>📄 {item.fileName}</strong>
+
+      <p>
+        {item.rows} Rows • {item.columns} Columns
+      </p>
+    </div>
+    <div
+  className={
+    item.qualityScore >= 90
+      ? "quality excellent"
+      : item.qualityScore >= 70
+      ? "quality good"
+      : "quality poor"
+  }
+>
+  Quality : {item.qualityScore}%
+</div>
+
+    <div className="history-actions">
+      <span>
+        {new Date(item.createdAt).toLocaleDateString("en-GB", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+})}
+
+{" • "}
+
+{new Date(item.createdAt).toLocaleTimeString([], {
+  hour: "2-digit",
+  minute: "2-digit",
+})}
+      </span>
+
+     <button
+  className="delete-history-btn"
+  onClick={() => handleDeleteHistory(item._id)}
+>
+  <FaTrash />
+</button>
+    </div>
+
+  </div>
+))}
               </div>
-            )}
+           )}
 
             <SummaryCards dataset={dataset} />
 

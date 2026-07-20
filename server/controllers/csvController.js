@@ -123,8 +123,8 @@ const cleanDataset = async (req, res) => {
       Object.keys(row).forEach((key) => {
         cleanedRow[key] =
           row[key] === "" ||
-          row[key] === null ||
-          row[key] === undefined
+            row[key] === null ||
+            row[key] === undefined
             ? "N/A"
             : row[key];
       });
