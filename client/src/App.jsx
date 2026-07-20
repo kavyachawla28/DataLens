@@ -5,6 +5,7 @@ import {
   getHistory,
   saveHistory,
   deleteHistory,
+  toggleFavorite,
 } from "./api/historyApi";
 import Recommendations from "./components/Recommendations";
 import { FaTrash } from "react-icons/fa";
@@ -81,7 +82,14 @@ const handleDeleteHistory = async (id) => {
     console.error(error);
   }
 };
-
+const handleFavorite = async (id) => {
+  try {
+    await toggleFavorite(id);
+    loadHistory();
+  } catch (error) {
+    console.error("Error updating favorite:", error);
+  }
+};
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
     setDataset(null);
@@ -536,10 +544,13 @@ const scrollToSection = (ref) => {
     <p>No analysis history found.</p>
   </div>
 ) : (
+  
               <div className="history-box">
                 <h3>🕒 Recent Analysis</h3>
 
-                {analysisHistory.map((item) => (
+                {[...analysisHistory]
+  .sort((a, b) => Number(b.favorite) - Number(a.favorite))
+  .map((item) => (
   <div key={item._id} className="history-item">
 
     <div>
@@ -561,31 +572,45 @@ const scrollToSection = (ref) => {
   Quality : {item.qualityScore}%
 </div>
 
-    <div className="history-actions">
-      <span>
-        {new Date(item.createdAt).toLocaleDateString("en-GB", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-})}
+   <div className="history-actions">
+  <span>
+    {new Date(item.createdAt).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })}
 
-{" • "}
+    {" • "}
 
-{new Date(item.createdAt).toLocaleTimeString([], {
-  hour: "2-digit",
-  minute: "2-digit",
-})}
-      </span>
+    {new Date(item.createdAt).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    })}
+  </span>
 
-     <button
-  className="delete-history-btn"
-  onClick={() => handleDeleteHistory(item._id)}
->
-  <FaTrash />
-</button>
-    </div>
+  <div className="history-buttons">
+    <button
+      className="favorite-btn"
+      onClick={() => handleFavorite(item._id)}
+      title={
+        item.favorite
+          ? "Remove from Favorites"
+          : "Add to Favorites"
+      }
+    >
+      {item.favorite ? "⭐" : "☆"}
+    </button>
 
+    <button
+      className="delete-history-btn"
+      onClick={() => handleDeleteHistory(item._id)}
+      title="Delete History"
+    >
+      <FaTrash />
+    </button>
   </div>
+</div>
+</div>
 ))}
               </div>
            )}

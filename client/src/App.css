@@ -49,18 +49,33 @@ input[type="file"] {
   color: #475569;
 }
 
-button {
-  display: block;
-  margin: 15px auto 0;
-  padding: 14px 28px;
-  border: none;
-  border-radius: 10px;
-  background: #2563eb;
-  color: white;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.25s ease;
+button:not(.favorite-btn):not(.delete-history-btn) {
+    display: block;
+    margin: 15px auto 0;
+    padding: 14px 28px;
+    border: none;
+    border-radius: 10px;
+    background: #2563eb;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+button:not(.favorite-btn):not(.delete-history-btn):hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+}
+
+button:not(.favorite-btn):not(.delete-history-btn):active {
+    transform: scale(0.97);
+}
+
+button:not(.favorite-btn):not(.delete-history-btn):disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
 }
 
 button:hover {
@@ -961,4 +976,32 @@ tbody tr:hover {
 
 .recommendation-item:last-child{
     margin-bottom:0;
+}
+.history-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.favorite-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  margin: 0 !important;
+  padding: 6px !important;
+  width: 36px;
+  height: 36px;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 50%;
+  color: #f59e0b;
+  font-size: 24px;
+  font-weight: normal !important;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.favorite-btn:hover {
+  background: transparent !important;
+  transform: scale(1.15);
 }
