@@ -18,10 +18,17 @@ const getHistory = async (req, res) => {
 // Save history
 const saveHistory = async (req, res) => {
   try {
+    // Debug: Check what frontend is sending
+    console.log("========== SAVE HISTORY ==========");
+    console.log(req.body);
+    console.log("==================================");
+
     const history = await History.create(req.body);
 
     res.status(201).json(history);
   } catch (error) {
+    console.error(error);
+
     res.status(500).json({
       message: error.message,
     });

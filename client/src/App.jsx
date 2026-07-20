@@ -91,6 +91,27 @@ const handleFavorite = async (id) => {
     console.error("Error updating favorite:", error);
   }
 };
+const handleViewDataset = (item) => {
+  if (!item.data || item.data.length === 0) {
+    alert(
+      "This dataset was saved before the View feature was added. Please upload it again."
+    );
+    return;
+  }
+
+  setDataset({
+    fileName: item.fileName,
+    rowCount: item.rows,
+    columnCount: item.columns,
+    missingValues: item.missingValues,
+    duplicateRows: item.duplicateRows,
+    columns: item.datasetColumns,
+    data: item.data,
+  });
+
+  setSelectedColumn("");
+};
+
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
     setDataset(null);
@@ -120,7 +141,8 @@ const handleFavorite = async (id) => {
 );
 
 console.log("UPLOAD RESPONSE:", response.data);
-console.log("DATASET:", response.data.dataset);
+console.log("DATA:", response.data.dataset.data);
+console.log("COLUMNS:", response.data.dataset.columns);
 
       setDataset(response.data.dataset);
       const totalCells =
@@ -137,6 +159,10 @@ await saveHistory({
   missingValues: response.data.dataset.missingValues,
   duplicateRows: response.data.dataset.duplicateRows,
   qualityScore,
+
+  // Save complete dataset
+  data: response.data.dataset.data,
+  datasetColumns: response.data.dataset.columns,
 });
 
 await loadHistory();
@@ -544,6 +570,7 @@ const scrollToSection = (ref) => {
   history={analysisHistory}
   onDelete={handleDeleteHistory}
   onFavorite={handleFavorite}
+  onView={handleViewDataset}
 />
 
 <DatasetComparison

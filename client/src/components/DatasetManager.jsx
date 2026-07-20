@@ -1,10 +1,16 @@
 import React, { useMemo, useState } from "react";
-import { FaTrash, FaStar, FaRegStar } from "react-icons/fa";
+import {
+  FaTrash,
+  FaStar,
+  FaRegStar,
+  FaEye,
+} from "react-icons/fa";
 
 function DatasetManager({
   history,
   onDelete,
   onFavorite,
+  onView,
 }) {
   const [search, setSearch] = useState("");
 const totalDatasets = history.length;
@@ -53,7 +59,10 @@ const favoriteDatasets = history.filter(
   </div>
 </div>
       {filteredHistory.length === 0 ? (
-        <p>No datasets found.</p>
+        <div className="empty-dataset">
+  <h3>📂 No datasets found</h3>
+  <p>Upload a CSV file or change your search.</p>
+</div>
       ) : (
         filteredHistory.map((item) => (
           <div
@@ -73,28 +82,41 @@ const favoriteDatasets = history.filter(
             </div>
 
             <div className="dataset-actions">
-              <button
-                className="favorite-btn"
-                onClick={() =>
-                  onFavorite(item._id)
-                }
-              >
-                {item.favorite ? (
-                  <FaStar />
-                ) : (
-                  <FaRegStar />
-                )}
-              </button>
+  <button
+    className="favorite-btn"
+    onClick={() => onFavorite(item._id)}
+    title={
+      item.favorite
+        ? "Remove from Favorites"
+        : "Add to Favorites"
+    }
+  >
+    {item.favorite ? (
+      <FaStar />
+    ) : (
+      <FaRegStar />
+    )}
+  </button>
 
-              <button
-                className="delete-history-btn"
-                onClick={() =>
-                  onDelete(item._id)
-                }
-              >
-                <FaTrash />
-              </button>
-            </div>
+  <button
+  className="view-btn"
+  onClick={() => {
+    console.log("VIEW CLICKED:", item);
+    onView(item);
+  }}
+  title="View Dataset"
+>
+  <FaEye />
+</button>
+
+  <button
+    className="delete-history-btn"
+    onClick={() => onDelete(item._id)}
+    title="Delete Dataset"
+  >
+    <FaTrash />
+  </button>
+</div>
           </div>
         ))
       )}

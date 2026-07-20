@@ -28,14 +28,24 @@ const historySchema = new mongoose.Schema(
     },
 
     qualityScore: {
-      type: Number,
-      default: 0,
-    },
+  type: Number,
+  default: 0,
+},
 
-    favorite: {
-      type: Boolean,
-      default: false,
-    },
+data: {
+  type: Array,
+  default: [],
+},
+
+datasetColumns: {
+  type: Array,
+  default: [],
+},
+
+favorite: {
+  type: Boolean,
+  default: false,
+},
   },
   {
     timestamps: true,
