@@ -1,3 +1,4 @@
+import DatasetComparison from "./components/DatasetComparison";
 import {
   getHistory,
   saveHistory,
@@ -579,7 +580,9 @@ setSelectedColumn("");
 ))}
               </div>
            )}
-
+<DatasetComparison
+    history={analysisHistory}
+/>
             <SummaryCards dataset={dataset} />
 
             <QualityScore
