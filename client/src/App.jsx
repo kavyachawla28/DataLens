@@ -1,6 +1,7 @@
 import DatasetComparison from "./components/DatasetComparison";
 import DashboardInsights from "./components/DashboardInsights";
 import DatasetHealth from "./components/DatasetHealth";
+import DatasetManager from "./components/DatasetManager";
 import {
   getHistory,
   saveHistory,
@@ -538,84 +539,15 @@ const scrollToSection = (ref) => {
               {dataset.fileName}
             </p>
 
-            {analysisHistory.length === 0 ? (
-  <div className="history-box">
-    <h3>🕒 Recent Analysis</h3>
-    <p>No analysis history found.</p>
-  </div>
-) : (
-  
-              <div className="history-box">
-                <h3>🕒 Recent Analysis</h3>
+           
+<DatasetManager
+  history={analysisHistory}
+  onDelete={handleDeleteHistory}
+  onFavorite={handleFavorite}
+/>
 
-                {[...analysisHistory]
-  .sort((a, b) => Number(b.favorite) - Number(a.favorite))
-  .map((item) => (
-  <div key={item._id} className="history-item">
-
-    <div>
-      <strong>📄 {item.fileName}</strong>
-
-      <p>
-        {item.rows} Rows • {item.columns} Columns
-      </p>
-    </div>
-    <div
-  className={
-    item.qualityScore >= 90
-      ? "quality excellent"
-      : item.qualityScore >= 70
-      ? "quality good"
-      : "quality poor"
-  }
->
-  Quality : {item.qualityScore}%
-</div>
-
-   <div className="history-actions">
-  <span>
-    {new Date(item.createdAt).toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    })}
-
-    {" • "}
-
-    {new Date(item.createdAt).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    })}
-  </span>
-
-  <div className="history-buttons">
-    <button
-      className="favorite-btn"
-      onClick={() => handleFavorite(item._id)}
-      title={
-        item.favorite
-          ? "Remove from Favorites"
-          : "Add to Favorites"
-      }
-    >
-      {item.favorite ? "⭐" : "☆"}
-    </button>
-
-    <button
-      className="delete-history-btn"
-      onClick={() => handleDeleteHistory(item._id)}
-      title="Delete History"
-    >
-      <FaTrash />
-    </button>
-  </div>
-</div>
-</div>
-))}
-              </div>
-           )}
 <DatasetComparison
-    history={analysisHistory}
+  history={analysisHistory}
 />
             <SummaryCards dataset={dataset} />
 <DashboardInsights dataset={dataset} />
