@@ -31,13 +31,15 @@ const historySchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+
+    favorite: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-module.exports = mongoose.model(
-  "History",
-  historySchema
-);
+module.exports = mongoose.model("History", historySchema);

@@ -1,11 +1,18 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/api/history";
+const API_URL = "http://localhost:5000/api/history";
 
-export const getHistory = () => axios.get(API);
+// Get all history
+export const getHistory = () => axios.get(API_URL);
 
-export const saveHistory = (history) =>
-  axios.post(API, history);
+// Save history
+export const saveHistory = (data) =>
+  axios.post(API_URL, data);
 
+// Toggle favorite
+export const toggleFavorite = (id) =>
+  axios.patch(`${API_URL}/${id}/favorite`);
+
+// Delete history
 export const deleteHistory = (id) =>
-  axios.delete(`${API}/${id}`);
+  axios.delete(`${API_URL}/${id}`);

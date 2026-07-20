@@ -43,8 +43,35 @@ const deleteHistory = async (req, res) => {
   }
 };
 
+// Toggle Favorite
+const toggleFavorite = async (req, res) => {
+  try {
+    const history = await History.findById(req.params.id);
+
+    if (!history) {
+      return res.status(404).json({
+        message: "History not found",
+      });
+    }
+
+    history.favorite = !history.favorite;
+
+    await history.save();
+
+    res.json({
+      message: "Favorite updated successfully",
+      history,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getHistory,
   saveHistory,
   deleteHistory,
+  toggleFavorite,
 };
