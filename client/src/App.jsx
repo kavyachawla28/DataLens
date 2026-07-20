@@ -1,9 +1,12 @@
 import DatasetComparison from "./components/DatasetComparison";
+import DashboardInsights from "./components/DashboardInsights";
+import DatasetHealth from "./components/DatasetHealth";
 import {
   getHistory,
   saveHistory,
   deleteHistory,
 } from "./api/historyApi";
+import Recommendations from "./components/Recommendations";
 import { FaTrash } from "react-icons/fa";
 import { jsPDF } from "jspdf";
 import Header from "./components/Header";
@@ -14,7 +17,7 @@ import SearchSortFilter from "./components/SearchSortFilter";
 import DataPreview from "./components/DataPreview";
 import Charts from "./components/Charts";
 import DuplicateAnalysis from "./components/DuplicateAnalysis";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
   FaDatabase,
@@ -50,6 +53,7 @@ function App() {
   const [sortOrder, setSortOrder] = useState("asc");
   const [filterColumn, setFilterColumn] = useState("");
   const [filterValue, setFilterValue] = useState("");
+ 
   const loadHistory = async () => {
   try {
     const response = await getHistory();
@@ -273,7 +277,12 @@ setSelectedColumn("");
 
     URL.revokeObjectURL(url);
   };
-
+const scrollToSection = (ref) => {
+  ref.current?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+};
   const numericColumns = dataset
     ? dataset.columns.filter((column) =>
       dataset.data.some(
@@ -584,7 +593,9 @@ setSelectedColumn("");
     history={analysisHistory}
 />
             <SummaryCards dataset={dataset} />
-
+<DashboardInsights dataset={dataset} />
+<DatasetHealth dataset={dataset} />
+<Recommendations dataset={dataset} />
             <QualityScore
               qualityScore={qualityScore}
               qualityStatus={qualityStatus}
