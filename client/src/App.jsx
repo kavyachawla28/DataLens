@@ -3,6 +3,9 @@ import DashboardInsights from "./components/DashboardInsights";
 import DatasetHealth from "./components/DatasetHealth";
 import DatasetManager from "./components/DatasetManager";
 import ColumnStatistics from "./components/ColumnStatistics";
+import OutlierAnalysis from "./components/OutlierAnalysis";
+import DistributionStatistics from "./components/DistributionStatistics";
+import TopBottomAnalysis from "./components/TopBottomAnalysis";
 import {
   getHistory,
   saveHistory,
@@ -403,29 +406,97 @@ const scrollToSection = (ref) => {
       })
     : [];
   const columnInsights =
-    dataset && selectedColumn
-      ? (() => {
+  dataset && selectedColumn
+    ? (() => {
         const values = dataset.data
           .map((row) => Number(row[selectedColumn]))
-          .filter((value) => !isNaN(value));
+          .filter((value) => !isNaN(value))
+          .sort((a, b) => a - b);
 
-        if (values.length === 0) {
-          return null;
-        }
+        if (values.length === 0) return null;
 
-        const sum = values.reduce(
-          (total, value) => total + value,
-          0
+        const sum = values.reduce((a, b) => a + b, 0);
+        const average = sum / values.length;
+
+        // Quartiles
+        const getPercentile = (arr, p) => {
+          const index = (arr.length - 1) * p;
+          const lower = Math.floor(index);
+          const upper = Math.ceil(index);
+
+          if (lower === upper) return arr[lower];
+
+          return (
+            arr[lower] +
+            (arr[upper] - arr[lower]) *
+              (index - lower)
+          );
+        };
+
+        const q1 = getPercentile(values, 0.25);
+        const median = getPercentile(values, 0.5);
+        const q3 = getPercentile(values, 0.75);
+
+        const iqr = q3 - q1;
+
+        const lowerBound = q1 - 1.5 * iqr;
+        const upperBound = q3 + 1.5 * iqr;
+
+        const outliers = values.filter(
+          (v) => v < lowerBound || v > upperBound
         );
 
+        // Range
+        const range =
+          Math.max(...values) - Math.min(...values);
+
+        // Mode
+        const frequency = {};
+        let mode = values[0];
+        let maxFrequency = 0;
+
+        values.forEach((v) => {
+          frequency[v] = (frequency[v] || 0) + 1;
+
+          if (frequency[v] > maxFrequency) {
+            maxFrequency = frequency[v];
+            mode = v;
+          }
+        });
+
+        // Variance
+        const variance =
+          values.reduce(
+            (total, v) =>
+              total + Math.pow(v - average, 2),
+            0
+          ) / values.length;
+
+        const standardDeviation =
+          Math.sqrt(variance);
+
         return {
-          average: sum / values.length,
+          average,
           minimum: Math.min(...values),
           maximum: Math.max(...values),
           sum,
+
+          q1,
+          median,
+          q3,
+          iqr,
+          lowerBound,
+          upperBound,
+          outliers,
+          outlierCount: outliers.length,
+
+          mode,
+          range,
+          variance,
+          standardDeviation,
         };
       })()
-      : null;
+    : null;
 
   const columnTypes = dataset
     ? dataset.columns.map((column) => {
@@ -708,7 +779,14 @@ const scrollToSection = (ref) => {
                   chartData={chartData}
                   columnInsights={columnInsights}
                 />
-
+                <OutlierAnalysis columnInsights={columnInsights} />
+                <TopBottomAnalysis
+  dataset={dataset}
+  selectedColumn={selectedColumn}
+/>
+<DistributionStatistics
+  columnInsights={columnInsights}
+/>
                 <DataPreview
                   dataset={dataset}
                   filteredData={filteredData}
