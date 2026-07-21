@@ -2,6 +2,7 @@ import DatasetComparison from "./components/DatasetComparison";
 import DashboardInsights from "./components/DashboardInsights";
 import DatasetHealth from "./components/DatasetHealth";
 import DatasetManager from "./components/DatasetManager";
+import ColumnStatistics from "./components/ColumnStatistics";
 import {
   getHistory,
   saveHistory,
@@ -471,6 +472,7 @@ const scrollToSection = (ref) => {
       };
     })
     : [];
+    <ColumnStatistics dataset={dataset} />
   const duplicateAnalysis = dataset
     ? (() => {
       const rowCountMap = new Map();
@@ -693,7 +695,7 @@ const scrollToSection = (ref) => {
                 setFilterColumn={setFilterColumn}
                 filterValue={filterValue}
                 setFilterValue={setFilterValue}
-                dataset={dataset}
+             dataset={dataset}
               />
               <div className="preview-box">
 

@@ -29,6 +29,16 @@ function QualityScore({
         <span>/100</span>
       </div>
 
+      <div className="progress-container">
+        <div
+          className="progress-bar"
+          style={{
+            width: `${qualityScore}%`,
+            backgroundColor: badgeColor,
+          }}
+        ></div>
+      </div>
+
       <div
         className="quality-badge"
         style={{ background: badgeColor }}
