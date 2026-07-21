@@ -66,7 +66,7 @@ function App() {
     const response = await getHistory();
     setAnalysisHistory(response.data);
   } catch (error) {
-    console.error(error);
+   
   }
 };
 
@@ -115,7 +115,7 @@ const handleViewDataset = (item) => {
   };
 
   setDataset(restoredDataset);
-console.log("RESTORED DATASET:", restoredDataset);
+
   // Reset dashboard state
   setSelectedColumn("");
   setSelectedCategory("");
@@ -668,7 +668,7 @@ const scrollToSection = (ref) => {
 <DatasetComparison
   history={analysisHistory}
 />
-{console.log("CURRENT DATASET:", dataset)}
+
             <SummaryCards dataset={dataset} />
 <DashboardInsights dataset={dataset} />
 <DatasetHealth dataset={dataset} />
