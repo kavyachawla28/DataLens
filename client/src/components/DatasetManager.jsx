@@ -101,7 +101,7 @@ const favoriteDatasets = history.filter(
   <button
   className="view-btn"
   onClick={() => {
-    console.log("VIEW CLICKED:", item);
+   console.log(JSON.stringify(item, null, 2));
     onView(item);
   }}
   title="View Dataset"

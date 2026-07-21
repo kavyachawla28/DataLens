@@ -55,6 +55,7 @@ function App() {
   const [sortOrder, setSortOrder] = useState("asc");
   const [filterColumn, setFilterColumn] = useState("");
   const [filterValue, setFilterValue] = useState("");
+  const [dashboardFilter, setDashboardFilter] = useState("all");
  
   const loadHistory = async () => {
   try {
@@ -94,12 +95,12 @@ const handleFavorite = async (id) => {
 const handleViewDataset = (item) => {
   if (!item.data || item.data.length === 0) {
     alert(
-      "This dataset was saved before the View feature was added. Please upload it again."
+      "This dataset was saved before the View feature was added."
     );
     return;
   }
 
-  setDataset({
+  const restoredDataset = {
     fileName: item.fileName,
     rowCount: item.rows,
     columnCount: item.columns,
@@ -107,10 +108,28 @@ const handleViewDataset = (item) => {
     duplicateRows: item.duplicateRows,
     columns: item.datasetColumns,
     data: item.data,
-  });
+  };
 
+  setDataset(restoredDataset);
+console.log("RESTORED DATASET:", restoredDataset);
+  // Reset dashboard state
   setSelectedColumn("");
+  setSelectedCategory("");
+  setSearchTerm("");
+  setSortColumn("");
+  setSortOrder("asc");
+  setFilterColumn("");
+  setFilterValue("");
+  setError("");
+  setSuccessMessage("");
+
+  // Optional: scroll to summary
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
 };
+  
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
@@ -576,6 +595,7 @@ const scrollToSection = (ref) => {
 <DatasetComparison
   history={analysisHistory}
 />
+{console.log("CURRENT DATASET:", dataset)}
             <SummaryCards dataset={dataset} />
 <DashboardInsights dataset={dataset} />
 <DatasetHealth dataset={dataset} />
