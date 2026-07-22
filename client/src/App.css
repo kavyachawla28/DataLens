@@ -504,27 +504,28 @@ tbody tr:hover {
   margin-bottom: 25px;
 }
 
-.hero-tags {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  flex-wrap: wrap;
+.hero-features {
+    display: flex;
+    justify-content: center;
+    gap: 45px;
+    flex-wrap: wrap;
+    margin-top: 25px;
 }
 
-.hero-tags span {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: white;
-  padding: 12px 22px;
-  border-radius: 30px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, .08);
-  font-weight: 600;
-  transition: .3s;
+.hero-features span {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    padding: 12px 22px;
+    border-radius: 30px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.08);
+    font-weight: 600;
+    transition: 0.3s;
 }
 
-.hero-tags span:hover {
-  transform: translateY(-4px);
+.hero-features span:hover {
+    transform: translateY(-4px);
 }
 
 .search-box {
@@ -1207,4 +1208,39 @@ tbody tr:hover {
   border-left: 4px solid #2563eb;
   background: #f8fafc;
   border-radius: 8px;
+}
+.show-more-btn {
+  margin-top: 15px;
+  padding: 10px 18px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.show-more-btn:hover {
+  background: #1d4ed8;
+}
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.pagination span {
+  font-weight: 600;
+  color: #475569;
+  font-size: 15px;
+}
+
+.pagination button {
+  margin: 0 !important;
+  padding: 10px 18px;
 }

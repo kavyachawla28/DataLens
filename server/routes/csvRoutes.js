@@ -6,6 +6,7 @@ const path = require("path");
 const {
   uploadCSV,
   cleanDataset,
+  getDatasetChunk,
 } = require("../controllers/csvController");
 
 const router = express.Router();
@@ -20,8 +21,8 @@ const upload = multer({
   dest: uploadPath,
 
   limits: {
-    fileSize: 2 * 1024 * 1024,
-  },
+  fileSize: 100 * 1024 * 1024, // 100 MB
+},
 
   fileFilter: (req, file, cb) => {
     if (
@@ -45,5 +46,8 @@ router.post(
   "/clean",
   cleanDataset
 );
-
+router.get(
+  "/chunk/:datasetId",
+  getDatasetChunk
+);
 module.exports = router;

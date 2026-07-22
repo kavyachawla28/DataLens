@@ -2,8 +2,11 @@ const fs = require("fs");
 const csv = require("csv-parser");
 
 const Dataset = require("../models/Dataset");
+const DatasetChunk = require("../models/DatasetChunk");
 
 const uploadCSV = async (req, res) => {
+  console.log("===== uploadCSV called =====");
+
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -51,6 +54,7 @@ const uploadCSV = async (req, res) => {
           const duplicateRows =
             results.length - uniqueRows.size;
 
+          // Create dataset metadata
           const dataset = await Dataset.create({
             fileName: req.file.originalname,
             columns,
@@ -58,38 +62,63 @@ const uploadCSV = async (req, res) => {
             columnCount: columns.length,
             missingValues,
             duplicateRows,
-            data: results,
+            data: [],
           });
+
+          // Save dataset in chunks
+          const CHUNK_SIZE = 5000;
+
+          for (let i = 0; i < results.length; i += CHUNK_SIZE) {
+            await DatasetChunk.create({
+              datasetId: dataset._id,
+              chunkIndex: i / CHUNK_SIZE,
+              rows: results.slice(i, i + CHUNK_SIZE),
+            });
+          }
+
+          // Store only preview
+          dataset.data = results.slice(0, 100);
+          await dataset.save();
 
           fs.unlinkSync(req.file.path);
 
-          res.status(201).json({
+          return res.status(201).json({
             message: "CSV uploaded successfully",
             dataset,
           });
+
         } catch (error) {
-          if (fs.existsSync(req.file.path)) {
+          console.error("FULL ERROR:", error);
+
+          if (
+            req.file &&
+            fs.existsSync(req.file.path)
+          ) {
             fs.unlinkSync(req.file.path);
           }
 
-          res.status(500).json({
+          return res.status(500).json({
             message: "Failed to process CSV file",
             error: error.message,
           });
         }
       })
       .on("error", (error) => {
-        if (fs.existsSync(req.file.path)) {
+        if (
+          req.file &&
+          fs.existsSync(req.file.path)
+        ) {
           fs.unlinkSync(req.file.path);
         }
 
-        res.status(500).json({
+        return res.status(500).json({
           message: "Failed to read CSV file",
           error: error.message,
         });
       });
+
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: "Server error",
       error: error.message,
     });
@@ -106,7 +135,7 @@ const cleanDataset = async (req, res) => {
       });
     }
 
-    // Remove duplicate rows
+    // Remove duplicates
     const uniqueRows = Array.from(
       new Map(
         data.map((row) => [
@@ -123,8 +152,8 @@ const cleanDataset = async (req, res) => {
       Object.keys(row).forEach((key) => {
         cleanedRow[key] =
           row[key] === "" ||
-            row[key] === null ||
-            row[key] === undefined
+          row[key] === null ||
+          row[key] === undefined
             ? "N/A"
             : row[key];
       });
@@ -132,17 +161,50 @@ const cleanDataset = async (req, res) => {
       return cleanedRow;
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Dataset cleaned successfully",
       originalRows: data.length,
       cleanedRows: cleanedData.length,
-      data: cleanedData,
+      dataset: cleanedData,
     });
+
   } catch (error) {
     console.error("Dataset cleaning failed:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Dataset cleaning failed",
+      error: error.message,
+    });
+  }
+};
+
+// Fetch one dataset chunk
+const getDatasetChunk = async (req, res) => {
+  try {
+    const { datasetId } = req.params;
+
+    const page = parseInt(req.query.page || "1");
+
+    const chunk = await DatasetChunk.findOne({
+      datasetId,
+      chunkIndex: page - 1,
+    });
+
+    if (!chunk) {
+      return res.status(404).json({
+        message: "Chunk not found",
+      });
+    }
+
+    return res.status(200).json({
+      page,
+      rows: chunk.rows,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to load dataset chunk",
+      error: error.message,
     });
   }
 };
@@ -150,4 +212,5 @@ const cleanDataset = async (req, res) => {
 module.exports = {
   uploadCSV,
   cleanDataset,
+  getDatasetChunk,
 };

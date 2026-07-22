@@ -55,11 +55,16 @@ function App() {
   const [selectedColumn, setSelectedColumn] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+const [pageData, setPageData] = useState([]);
+const [datasetId, setDatasetId] = useState("");
+const rowsPerPage = 100;
   const [sortColumn, setSortColumn] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [filterColumn, setFilterColumn] = useState("");
   const [filterValue, setFilterValue] = useState("");
   const [dashboardFilter, setDashboardFilter] = useState("all");
+  const [showAllCategories, setShowAllCategories] = useState(false);
  
   const loadHistory = async () => {
   try {
@@ -168,6 +173,10 @@ console.log("DATA:", response.data.dataset.data);
 console.log("COLUMNS:", response.data.dataset.columns);
 
       setDataset(response.data.dataset);
+setDatasetId(response.data.dataset._id);
+setPageData(response.data.dataset.data);
+setCurrentPage(1);
+      console.log("Dataset ID:", response.data.dataset._id);
       const totalCells =
   response.data.dataset.rowCount * response.data.dataset.columnCount;
 
@@ -201,7 +210,18 @@ setSelectedColumn("");
       setLoading(false);
     }
   };
+const loadPage = async (page) => {
+  try {
+    const response = await axios.get(
+      `http://localhost:5000/api/csv/chunk/${datasetId}?page=${page}`
+    );
 
+    setPageData(response.data.rows);
+    setCurrentPage(page);
+  } catch (err) {
+    console.error(err);
+  }
+};
   const handleCleanDataset = async () => {
     if (!dataset) {
       return;
@@ -216,6 +236,7 @@ setSelectedColumn("");
         "http://localhost:5000/api/csv/clean",
         { data: dataset.data, columns: dataset.columns }
       );
+      
 
       setDataset(response.data.dataset);
       console.log(response.data.dataset);
@@ -363,7 +384,7 @@ const scrollToSection = (ref) => {
       }))
       : [];
   const filteredData = dataset
-    ? dataset.data
+  ? pageData
       .filter((row) => {
         const matchesSearch =
           dataset.columns.some((column) =>
@@ -404,7 +425,7 @@ const scrollToSection = (ref) => {
           ? comparison
           : -comparison;
       })
-    : [];
+  : [];
   const columnInsights =
   dataset && selectedColumn
     ? (() => {
@@ -600,6 +621,9 @@ const scrollToSection = (ref) => {
         );
       })()
       : [];
+      console.log("showAllCategories:", showAllCategories);
+console.log("categoricalData length:", categoricalData.length);
+console.log(categoricalData);
   const totalCells = dataset
     ? dataset.rowCount * dataset.columnCount
     : 0;
@@ -721,12 +745,13 @@ const scrollToSection = (ref) => {
               <div className="categorical-box">
                 <h3>Categorical Data Analysis</h3>
 
-                <select
-                  value={selectedCategory}
-                  onChange={(event) =>
-                    setSelectedCategory(event.target.value)
-                  }
-                >
+               <select
+  value={selectedCategory}
+ onChange={(e) => {
+  setSelectedCategory(e.target.value);
+  setShowAllCategories(false);
+}}
+>
                   <option value="">
                     Select a text column
                   </option>
@@ -742,16 +767,29 @@ const scrollToSection = (ref) => {
                   <div className="category-results">
                     <h4>{selectedCategory} Distribution</h4>
 
-                    {categoricalData.map((item, index) => (
-                      <div
-                        className="category-row"
-                        key={index}
-                      >
-                        <span>{item.name}</span>
+                    {(showAllCategories
+  ? categoricalData
+  : categoricalData.slice(0, 5)
+).map((item, index) => (
+  <div
+    className="category-row"
+    key={index}
+  >
+    <span>{item.name}</span>
 
-                        <strong>{item.value}</strong>
-                      </div>
-                    ))}
+    <strong>{item.value}</strong>
+  </div>
+))}
+{categoricalData.length > 5 && (
+ <button
+  className="show-more-btn"
+  onClick={() => setShowAllCategories(prev => !prev)}
+>
+  {showAllCategories
+    ? "Show Less ▲"
+    : `Show More (${categoricalData.length - 5} more) ▼`}
+</button>
+)}
                   </div>
                 )}
               </div>
@@ -788,9 +826,35 @@ const scrollToSection = (ref) => {
   columnInsights={columnInsights}
 />
                 <DataPreview
-                  dataset={dataset}
-                  filteredData={filteredData}
-                />
+  dataset={dataset}
+  filteredData={filteredData}
+  currentPage={currentPage}
+  rowsPerPage={rowsPerPage}
+/>
+<div className="pagination">
+  <button
+   onClick={() => loadPage(currentPage - 1)}
+    disabled={currentPage === 1}
+  >
+    ← Previous
+  </button>
+
+  <span>
+    Showing{" "}
+    {(currentPage - 1) * rowsPerPage + 1}
+    {" - "}
+    {Math.min(currentPage * rowsPerPage, filteredData.length)}
+    {" of "}
+   {dataset.rowCount} rows
+  </span>
+
+  <button
+    onClick={() => loadPage(currentPage + 1)}
+  disabled={currentPage * rowsPerPage >= dataset.rowCount}
+  >
+    Next →
+  </button>
+</div>
               </div>
             </div>
           </div>

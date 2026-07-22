@@ -1,7 +1,14 @@
 function DataPreview({
   dataset,
   filteredData,
+  currentPage,
+  rowsPerPage,
 }) {
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+
+  const paginatedData = filteredData.slice(startIndex, endIndex);
+
   return (
     <div className="table-container">
       <table>
@@ -14,9 +21,9 @@ function DataPreview({
         </thead>
 
         <tbody>
-          {filteredData.length > 0 ? (
-            filteredData.map((row, rowIndex) => (
-              <tr key={rowIndex}>
+          {paginatedData.length > 0 ? (
+            paginatedData.map((row, rowIndex) => (
+              <tr key={startIndex + rowIndex}>
                 {dataset.columns.map((column) => (
                   <td key={column}>
                     {row[column] || "-"}
