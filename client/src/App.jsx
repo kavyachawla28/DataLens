@@ -69,9 +69,12 @@ const rowsPerPage = 100;
   const loadHistory = async () => {
   try {
     const response = await getHistory();
+
+    console.log("History Response:", response.data);
+
     setAnalysisHistory(response.data);
   } catch (error) {
-   
+    console.error(error);
   }
 };
 
@@ -101,44 +104,57 @@ const handleFavorite = async (id) => {
     console.error("Error updating favorite:", error);
   }
 };
-const handleViewDataset = (item) => {
-  if (!item.data || item.data.length === 0) {
+const handleViewDataset = async (item) => {
+  if (!item.datasetId) {
     alert(
-      "This dataset was saved before the View feature was added."
+      "This is an old history entry. Please delete it and upload the dataset again."
     );
     return;
   }
 
-  const restoredDataset = {
-    fileName: item.fileName,
-    rowCount: item.rows,
-    columnCount: item.columns,
-    missingValues: item.missingValues,
-    duplicateRows: item.duplicateRows,
-    columns: item.datasetColumns,
-    data: item.data,
-  };
+  try {
+    // Restore dataset metadata
+    setDataset({
+      fileName: item.fileName,
+      rowCount: item.rows,
+      columnCount: item.columns,
+      missingValues: item.missingValues,
+      duplicateRows: item.duplicateRows,
+      columns: item.datasetColumns,
+      data: [],
+    });
 
-  setDataset(restoredDataset);
+    // Restore dataset id
+    setDatasetId(item.datasetId);
 
-  // Reset dashboard state
-  setSelectedColumn("");
-  setSelectedCategory("");
-  setSearchTerm("");
-  setSortColumn("");
-  setSortOrder("asc");
-  setFilterColumn("");
-  setFilterValue("");
-  setError("");
-  setSuccessMessage("");
+    // Reset dashboard state
+    setCurrentPage(1);
+    setSelectedColumn("");
+    setSelectedCategory("");
+    setSearchTerm("");
+    setSortColumn("");
+    setSortOrder("asc");
+    setFilterColumn("");
+    setFilterValue("");
+    setError("");
+    setSuccessMessage("");
 
-  // Optional: scroll to summary
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth",
-  });
+    // Load first page from chunk storage
+    const response = await axios.get(
+      `http://localhost:5000/api/csv/chunk/${item.datasetId}?page=1`
+    );
+
+    setPageData(response.data.rows);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  } catch (error) {
+    console.error(error);
+    alert("Unable to load dataset.");
+  }
 };
-  
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
@@ -183,20 +199,18 @@ setCurrentPage(1);
 const qualityScore = Math.round(
   ((totalCells - response.data.dataset.missingValues) / totalCells) * 100
 );
-
+console.log("Saving history with datasetId:", response.data.dataset._id);
 await saveHistory({
+  datasetId: response.data.dataset._id,
   fileName: response.data.dataset.fileName,
   rows: response.data.dataset.rowCount,
   columns: response.data.dataset.columnCount,
   missingValues: response.data.dataset.missingValues,
   duplicateRows: response.data.dataset.duplicateRows,
   qualityScore,
-
-  // Save complete dataset
   data: response.data.dataset.data,
   datasetColumns: response.data.dataset.columns,
 });
-
 await loadHistory();
 
 

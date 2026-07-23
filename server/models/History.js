@@ -2,6 +2,12 @@ const mongoose = require("mongoose");
 
 const historySchema = new mongoose.Schema(
   {
+    datasetId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Dataset",
+      required: true,
+    },
+
     fileName: {
       type: String,
       required: true,
@@ -28,24 +34,24 @@ const historySchema = new mongoose.Schema(
     },
 
     qualityScore: {
-  type: Number,
-  default: 0,
-},
+      type: Number,
+      default: 0,
+    },
 
-data: {
-  type: Array,
-  default: [],
-},
+    data: {
+      type: Array,
+      default: [],
+    },
 
-datasetColumns: {
-  type: Array,
-  default: [],
-},
+    datasetColumns: {
+      type: Array,
+      default: [],
+    },
 
-favorite: {
-  type: Boolean,
-  default: false,
-},
+    favorite: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
