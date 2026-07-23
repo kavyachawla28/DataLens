@@ -76,7 +76,7 @@ const uploadCSV = async (req, res) => {
             });
           }
 
-          // Store only preview
+          // Store preview only
           dataset.data = results.slice(0, 100);
           await dataset.save();
 
@@ -127,15 +127,38 @@ const uploadCSV = async (req, res) => {
 
 const cleanDataset = async (req, res) => {
   try {
-    const { data } = req.body;
+    const { datasetId } = req.body;
 
-    if (!data || !Array.isArray(data)) {
+    if (!datasetId) {
       return res.status(400).json({
-        message: "Invalid dataset",
+        message: "Dataset ID is required",
       });
     }
 
-    // Remove duplicates
+    const dataset = await Dataset.findById(datasetId);
+
+    if (!dataset) {
+      return res.status(404).json({
+        message: "Dataset not found",
+      });
+    }
+
+    // Load all chunks
+    const chunks = await DatasetChunk.find({
+      datasetId,
+    }).sort({
+      chunkIndex: 1,
+    });
+
+    let data = [];
+
+    chunks.forEach((chunk) => {
+      data.push(...chunk.rows);
+    });
+
+    const originalRows = data.length;
+
+    // Remove duplicate rows
     const uniqueRows = Array.from(
       new Map(
         data.map((row) => [
@@ -145,7 +168,7 @@ const cleanDataset = async (req, res) => {
       ).values()
     );
 
-    // Fill missing values
+    // Replace missing values
     const cleanedData = uniqueRows.map((row) => {
       const cleanedRow = {};
 
@@ -161,11 +184,51 @@ const cleanDataset = async (req, res) => {
       return cleanedRow;
     });
 
+    // Update dataset metadata
+    dataset.data = cleanedData.slice(0, 100);
+    dataset.rowCount = cleanedData.length;
+    dataset.columnCount = dataset.columns.length;
+    dataset.duplicateRows = 0;
+
+    let missingValues = 0;
+
+    cleanedData.forEach((row) => {
+      dataset.columns.forEach((column) => {
+        if (
+          row[column] === "" ||
+          row[column] === null ||
+          row[column] === undefined
+        ) {
+          missingValues++;
+        }
+      });
+    });
+
+    dataset.missingValues = missingValues;
+
+    await dataset.save();
+
+    // Delete old chunks
+    await DatasetChunk.deleteMany({
+      datasetId,
+    });
+
+    // Save cleaned chunks
+    const CHUNK_SIZE = 5000;
+
+    for (let i = 0; i < cleanedData.length; i += CHUNK_SIZE) {
+      await DatasetChunk.create({
+        datasetId,
+        chunkIndex: i / CHUNK_SIZE,
+        rows: cleanedData.slice(i, i + CHUNK_SIZE),
+      });
+    }
+
     return res.status(200).json({
       message: "Dataset cleaned successfully",
-      originalRows: data.length,
+      originalRows,
       cleanedRows: cleanedData.length,
-      dataset: cleanedData,
+      dataset,
     });
 
   } catch (error) {
@@ -209,8 +272,73 @@ const getDatasetChunk = async (req, res) => {
   }
 };
 
+// Export complete dataset
+const exportDataset = async (req, res) => {
+  try {
+    const { datasetId } = req.params;
+
+    const dataset = await Dataset.findById(datasetId);
+
+    if (!dataset) {
+      return res.status(404).json({
+        message: "Dataset not found",
+      });
+    }
+
+    const chunks = await DatasetChunk.find({
+      datasetId,
+    }).sort({
+      chunkIndex: 1,
+    });
+
+    if (chunks.length === 0) {
+      return res.status(404).json({
+        message: "No chunks found",
+      });
+    }
+
+    const headers = dataset.columns;
+
+    const csvRows = [];
+
+    csvRows.push(headers.join(","));
+
+    chunks.forEach((chunk) => {
+      chunk.rows.forEach((row) => {
+        csvRows.push(
+          headers
+            .map((column) => {
+              const value = row[column] ?? "";
+              return `"${String(value).replace(/"/g, '""')}"`;
+            })
+            .join(",")
+        );
+      });
+    });
+
+    const csvContent = csvRows.join("\n");
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="cleaned_${dataset.fileName}"`
+    );
+
+    return res.send(csvContent);
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      message: "Failed to export dataset",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   uploadCSV,
   cleanDataset,
   getDatasetChunk,
+  exportDataset,
 };

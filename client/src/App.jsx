@@ -1,3 +1,4 @@
+import axios from "axios";
 import DatasetComparison from "./components/DatasetComparison";
 import DashboardInsights from "./components/DashboardInsights";
 import DatasetHealth from "./components/DatasetHealth";
@@ -24,7 +25,6 @@ import DataPreview from "./components/DataPreview";
 import Charts from "./components/Charts";
 import DuplicateAnalysis from "./components/DuplicateAnalysis";
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import {
   FaDatabase,
   FaUpload,
@@ -178,7 +178,8 @@ const handleViewDataset = async (item) => {
       const formData = new FormData();
 
       formData.append("file", file);
-
+console.log("Dataset ID:", datasetId);
+console.log("Dataset:", dataset);
       const response = await axios.post(
   "http://localhost:5000/api/csv/upload",
   formData
@@ -189,6 +190,8 @@ console.log("DATA:", response.data.dataset.data);
 console.log("COLUMNS:", response.data.dataset.columns);
 
       setDataset(response.data.dataset);
+      setCurrentPage(1);
+await loadPage(1);
 setDatasetId(response.data.dataset._id);
 setPageData(response.data.dataset.data);
 setCurrentPage(1);
@@ -226,14 +229,19 @@ setSelectedColumn("");
   };
 const loadPage = async (page) => {
   try {
+    setLoading(true);
+
     const response = await axios.get(
       `http://localhost:5000/api/csv/chunk/${datasetId}?page=${page}`
     );
 
     setPageData(response.data.rows);
     setCurrentPage(page);
+
   } catch (err) {
     console.error(err);
+  } finally {
+    setLoading(false);
   }
 };
   const handleCleanDataset = async () => {
@@ -247,9 +255,12 @@ const loadPage = async (page) => {
       setSuccessMessage("");
 
       const response = await axios.post(
-        "http://localhost:5000/api/csv/clean",
-        { data: dataset.data, columns: dataset.columns }
-      );
+  "http://localhost:5000/api/csv/clean",
+  {
+    datasetId,
+  }
+);
+console.log("datasetId:", datasetId);
       
 
       setDataset(response.data.dataset);
@@ -328,34 +339,21 @@ const loadPage = async (page) => {
     doc.save("DataLens_Report.pdf");
   };
 
-  const handleDownloadCSV = () => {
-    if (!dataset || dataset.data.length === 0) {
+ const handleDownloadCSV = async () => {
+  try {
+    if (!datasetId) {
       setError("No dataset available to download");
       return;
     }
 
-    const headers = dataset.columns;
+    const response = await axios.get(
+      `http://localhost:5000/api/csv/export/${datasetId}`,
+      {
+        responseType: "blob",
+      }
+    );
 
-    const csvRows = [
-      headers.join(","),
-      ...dataset.data.map((row) =>
-        headers
-          .map((column) => {
-            const value = row[column] ?? "";
-
-            return `"${String(value).replace(/"/g, '""')}"`;
-          })
-          .join(",")
-      ),
-    ];
-
-    const csvContent = csvRows.join("\n");
-
-    const blob = new Blob([csvContent], {
-      type: "text/csv;charset=utf-8;",
-    });
-
-    const url = URL.createObjectURL(blob);
+    const url = window.URL.createObjectURL(new Blob([response.data]));
 
     const link = document.createElement("a");
 
@@ -368,13 +366,11 @@ const loadPage = async (page) => {
 
     document.body.removeChild(link);
 
-    URL.revokeObjectURL(url);
-  };
-const scrollToSection = (ref) => {
-  ref.current?.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error(error);
+    setError("Failed to download dataset.");
+  }
 };
   const numericColumns = dataset
     ? dataset.columns.filter((column) =>
@@ -606,6 +602,8 @@ const scrollToSection = (ref) => {
       return duplicateRows;
     })()
     : [];
+
+    
   const categoricalColumns = columnTypes
     .filter((column) => column.type === "Text")
     .map((column) => column.name);
