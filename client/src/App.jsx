@@ -1,4 +1,5 @@
 import axios from "axios";
+import Login from "./pages/Login";
 import DatasetComparison from "./components/DatasetComparison";
 import DashboardInsights from "./components/DashboardInsights";
 import DatasetHealth from "./components/DatasetHealth";
@@ -45,6 +46,7 @@ import {
 import "./App.css";
 
 function App() {
+  const token = localStorage.getItem("token");
   const [file, setFile] = useState(null);
   const [dataset, setDataset] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -668,7 +670,11 @@ console.log(categoricalData);
         ? "Needs Cleaning"
         : "Poor Quality";
 
-  return (
+  if (!token) {
+  return <Login />;
+}
+
+return (
     <div className="app">
       <div className="container">
         <div className="hero">
