@@ -10,6 +10,8 @@ const {
   exportDataset,
 } = require("../controllers/csvController");
 
+const authMiddleware = require("../middleware/authMiddleware");
+
 const router = express.Router();
 
 const uploadPath = path.join(__dirname, "../uploads");
@@ -22,7 +24,7 @@ const upload = multer({
   dest: uploadPath,
 
   limits: {
-    fileSize: 100 * 1024 * 1024, // 100 MB
+    fileSize: 100 * 1024 * 1024,
   },
 
   fileFilter: (req, file, cb) => {
@@ -37,12 +39,18 @@ const upload = multer({
   },
 });
 
-router.post("/upload", upload.single("file"), uploadCSV);
+// Protected Routes
+router.post(
+  "/upload",
+  authMiddleware,
+  upload.single("file"),
+  uploadCSV
+);
 
-router.post("/clean", cleanDataset);
+router.post("/clean", authMiddleware, cleanDataset);
 
-router.get("/chunk/:datasetId", getDatasetChunk);
+router.get("/chunk/:datasetId", authMiddleware, getDatasetChunk);
 
-router.get("/export/:datasetId", exportDataset);
+router.get("/export/:datasetId", authMiddleware, exportDataset);
 
 module.exports = router;

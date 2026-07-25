@@ -4,9 +4,18 @@ const router = express.Router();
 const {
   registerUser,
   loginUser,
+  changePassword,
+  deleteAccount,
 } = require("../controllers/authController");
 
+const authMiddleware = require("../middleware/authMiddleware");
+
+// Public Routes
 router.post("/register", registerUser);
 router.post("/login", loginUser);
+
+// Protected Routes
+router.put("/change-password", authMiddleware, changePassword);
+router.delete("/delete", authMiddleware, deleteAccount);
 
 module.exports = router;

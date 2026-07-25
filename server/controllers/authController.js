@@ -13,9 +13,14 @@ const generateToken = (id) => {
   );
 };
 
+// ======================
+// Register
+// ======================
+
 const registerUser = async (req, res) => {
   try {
     console.log(req.body);
+
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
@@ -50,14 +55,19 @@ const registerUser = async (req, res) => {
       },
     });
 
- } catch (error) {
-  console.error("REGISTER ERROR:", error);
+  } catch (error) {
+    console.error("REGISTER ERROR:", error);
 
-  return res.status(500).json({
-    message: error.message,
-  });
-}
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
 };
+
+// ======================
+// Login
+// ======================
+
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -103,7 +113,82 @@ const loginUser = async (req, res) => {
   }
 };
 
+// ======================
+// Change Password
+// ======================
+
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        message: "All fields are required",
+      });
+    }
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
+
+    if (!isMatch) {
+      return res.status(400).json({
+        message: "Current password is incorrect",
+      });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+
+    await user.save();
+
+    return res.json({
+      message: "Password changed successfully",
+    });
+
+  } catch (error) {
+    console.error("CHANGE PASSWORD ERROR:", error);
+
+    return res.status(500).json({
+      message: "Server Error",
+    });
+  }
+};
+
+// ======================
+// Delete Account
+// ======================
+
+const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    await User.findByIdAndDelete(userId);
+
+    return res.json({
+      message: "Account deleted successfully",
+    });
+
+  } catch (error) {
+    console.error("DELETE ACCOUNT ERROR:", error);
+
+    return res.status(500).json({
+      message: "Server Error",
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
+  changePassword,
+  deleteAccount,
 };

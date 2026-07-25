@@ -1,9 +1,11 @@
 const History = require("../models/History");
 
-// Get all history
+// Get logged-in user's history
 const getHistory = async (req, res) => {
   try {
-    const history = await History.find().sort({
+    const history = await History.find({
+      userId: req.user.id,
+    }).sort({
       createdAt: -1,
     });
 
@@ -18,12 +20,14 @@ const getHistory = async (req, res) => {
 // Save history
 const saveHistory = async (req, res) => {
   try {
-    // Debug: Check what frontend is sending
     console.log("========== SAVE HISTORY ==========");
     console.log(req.body);
     console.log("==================================");
 
-    const history = await History.create(req.body);
+    const history = await History.create({
+      ...req.body,
+      userId: req.user.id,
+    });
 
     res.status(201).json(history);
   } catch (error) {
@@ -38,7 +42,16 @@ const saveHistory = async (req, res) => {
 // Delete history
 const deleteHistory = async (req, res) => {
   try {
-    await History.findByIdAndDelete(req.params.id);
+    const history = await History.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user.id,
+    });
+
+    if (!history) {
+      return res.status(404).json({
+        message: "History not found",
+      });
+    }
 
     res.json({
       message: "History deleted",
@@ -53,7 +66,10 @@ const deleteHistory = async (req, res) => {
 // Toggle Favorite
 const toggleFavorite = async (req, res) => {
   try {
-    const history = await History.findById(req.params.id);
+    const history = await History.findOne({
+      _id: req.params.id,
+      userId: req.user.id,
+    });
 
     if (!history) {
       return res.status(404).json({

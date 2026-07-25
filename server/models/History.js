@@ -2,6 +2,13 @@ const mongoose = require("mongoose");
 
 const historySchema = new mongoose.Schema(
   {
+    // Owner of this history entry
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
     datasetId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Dataset",

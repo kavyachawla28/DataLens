@@ -184,7 +184,12 @@ console.log("Dataset ID:", datasetId);
 console.log("Dataset:", dataset);
       const response = await axios.post(
   "http://localhost:5000/api/csv/upload",
-  formData
+  formData,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
 );
 
 console.log("UPLOAD RESPONSE:", response.data);
@@ -234,8 +239,13 @@ const loadPage = async (page) => {
     setLoading(true);
 
     const response = await axios.get(
-      `http://localhost:5000/api/csv/chunk/${datasetId}?page=${page}`
-    );
+  `http://localhost:5000/api/csv/chunk/${datasetId}?page=${page}`,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
 
     setPageData(response.data.rows);
     setCurrentPage(page);
@@ -260,6 +270,11 @@ const loadPage = async (page) => {
   "http://localhost:5000/api/csv/clean",
   {
     datasetId,
+  },
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   }
 );
 console.log("datasetId:", datasetId);
@@ -349,11 +364,14 @@ console.log("datasetId:", datasetId);
     }
 
     const response = await axios.get(
-      `http://localhost:5000/api/csv/export/${datasetId}`,
-      {
-        responseType: "blob",
-      }
-    );
+  `http://localhost:5000/api/csv/export/${datasetId}`,
+  {
+    responseType: "blob",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
 
     const url = window.URL.createObjectURL(new Blob([response.data]));
 

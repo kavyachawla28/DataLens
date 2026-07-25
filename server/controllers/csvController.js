@@ -54,8 +54,8 @@ const uploadCSV = async (req, res) => {
           const duplicateRows =
             results.length - uniqueRows.size;
 
-          // Create dataset metadata
           const dataset = await Dataset.create({
+            userId: req.user.id,
             fileName: req.file.originalname,
             columns,
             rowCount: results.length,
@@ -65,7 +65,6 @@ const uploadCSV = async (req, res) => {
             data: [],
           });
 
-          // Save dataset in chunks
           const CHUNK_SIZE = 5000;
 
           for (let i = 0; i < results.length; i += CHUNK_SIZE) {
@@ -76,7 +75,6 @@ const uploadCSV = async (req, res) => {
             });
           }
 
-          // Store preview only
           dataset.data = results.slice(0, 100);
           await dataset.save();
 
@@ -135,7 +133,10 @@ const cleanDataset = async (req, res) => {
       });
     }
 
-    const dataset = await Dataset.findById(datasetId);
+    const dataset = await Dataset.findOne({
+      _id: datasetId,
+      userId: req.user.id,
+    });
 
     if (!dataset) {
       return res.status(404).json({
@@ -143,7 +144,6 @@ const cleanDataset = async (req, res) => {
       });
     }
 
-    // Load all chunks
     const chunks = await DatasetChunk.find({
       datasetId,
     }).sort({
@@ -158,7 +158,6 @@ const cleanDataset = async (req, res) => {
 
     const originalRows = data.length;
 
-    // Remove duplicate rows
     const uniqueRows = Array.from(
       new Map(
         data.map((row) => [
@@ -168,7 +167,6 @@ const cleanDataset = async (req, res) => {
       ).values()
     );
 
-    // Replace missing values
     const cleanedData = uniqueRows.map((row) => {
       const cleanedRow = {};
 
@@ -184,7 +182,6 @@ const cleanDataset = async (req, res) => {
       return cleanedRow;
     });
 
-    // Update dataset metadata
     dataset.data = cleanedData.slice(0, 100);
     dataset.rowCount = cleanedData.length;
     dataset.columnCount = dataset.columns.length;
@@ -208,12 +205,10 @@ const cleanDataset = async (req, res) => {
 
     await dataset.save();
 
-    // Delete old chunks
     await DatasetChunk.deleteMany({
       datasetId,
     });
 
-    // Save cleaned chunks
     const CHUNK_SIZE = 5000;
 
     for (let i = 0; i < cleanedData.length; i += CHUNK_SIZE) {
@@ -241,12 +236,22 @@ const cleanDataset = async (req, res) => {
   }
 };
 
-// Fetch one dataset chunk
 const getDatasetChunk = async (req, res) => {
   try {
     const { datasetId } = req.params;
 
     const page = parseInt(req.query.page || "1");
+
+    const dataset = await Dataset.findOne({
+      _id: datasetId,
+      userId: req.user.id,
+    });
+
+    if (!dataset) {
+      return res.status(404).json({
+        message: "Dataset not found",
+      });
+    }
 
     const chunk = await DatasetChunk.findOne({
       datasetId,
@@ -272,12 +277,14 @@ const getDatasetChunk = async (req, res) => {
   }
 };
 
-// Export complete dataset
 const exportDataset = async (req, res) => {
   try {
     const { datasetId } = req.params;
 
-    const dataset = await Dataset.findById(datasetId);
+    const dataset = await Dataset.findOne({
+      _id: datasetId,
+      userId: req.user.id,
+    });
 
     if (!dataset) {
       return res.status(404).json({

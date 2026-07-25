@@ -2,6 +2,8 @@ const express = require("express");
 
 const router = express.Router();
 
+const authMiddleware = require("../middleware/authMiddleware");
+
 const {
   getHistory,
   saveHistory,
@@ -9,16 +11,16 @@ const {
   toggleFavorite,
 } = require("../controllers/historyController");
 
-// Get all history
-router.get("/", getHistory);
+// Get logged-in user's history
+router.get("/", authMiddleware, getHistory);
 
 // Save history
-router.post("/", saveHistory);
+router.post("/", authMiddleware, saveHistory);
 
 // Toggle favorite
-router.patch("/:id/favorite", toggleFavorite);
+router.patch("/:id/favorite", authMiddleware, toggleFavorite);
 
 // Delete history
-router.delete("/:id", deleteHistory);
+router.delete("/:id", authMiddleware, deleteHistory);
 
 module.exports = router;

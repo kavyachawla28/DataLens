@@ -2,6 +2,13 @@ const mongoose = require("mongoose");
 
 const datasetSchema = new mongoose.Schema(
   {
+    // Owner of the dataset
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
     fileName: {
       type: String,
       required: true,
@@ -42,6 +49,4 @@ const datasetSchema = new mongoose.Schema(
   }
 );
 
-const Dataset = mongoose.model("Dataset", datasetSchema);
-
-module.exports = Dataset;
+module.exports = mongoose.model("Dataset", datasetSchema);
