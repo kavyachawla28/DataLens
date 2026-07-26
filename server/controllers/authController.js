@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
+const crypto = require("crypto");
 const User = require("../models/User");
 const { sendEmail } = require("../utils/mailService");
 
@@ -167,7 +167,85 @@ const loginUser = async (req, res) => {
     });
   }
 };
+ 
+const sendResetOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
 
+    if (!email) {
+      return res.status(400).json({
+        message: "Email is required",
+      });
+    }
+
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "No account found with this email",
+      });
+    }
+
+    // Generate 6-digit OTP
+    const otp = crypto.randomInt(100000, 999999).toString();
+
+    // Hash OTP before saving
+    const hashedOTP = await bcrypt.hash(otp, 10);
+
+    user.resetOTP = hashedOTP;
+    user.resetOTPExpiry = Date.now() + 10 * 60 * 1000;
+
+    await user.save();
+
+    await sendEmail(
+      user.email,
+      "DataLens Password Reset Code",
+      `
+      <div style="font-family:Arial;padding:20px">
+
+        <h2>Password Reset</h2>
+
+        <p>Hello <b>${user.name}</b>,</p>
+
+        <p>Your verification code is:</p>
+
+        <h1 style="
+            letter-spacing:6px;
+            color:#2563eb;
+            font-size:36px;">
+            ${otp}
+        </h1>
+
+        <p>This code will expire in
+        <b>10 minutes</b>.</p>
+
+        <p>
+        If you didn't request this,
+        simply ignore this email.
+        </p>
+
+        <hr>
+
+        <small>DataLens Team</small>
+
+      </div>
+      `
+    );
+
+    return res.json({
+      message: "Verification code sent successfully.",
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      message: "Unable to send verification code",
+    });
+  }
+};
 // ======================
 // Change Password
 // ======================
@@ -244,6 +322,7 @@ const deleteAccount = async (req, res) => {
 module.exports = {
   registerUser,
   loginUser,
+  sendResetOTP,
   changePassword,
   deleteAccount,
 };
