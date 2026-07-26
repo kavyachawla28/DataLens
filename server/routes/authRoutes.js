@@ -5,6 +5,8 @@ const {
   registerUser,
   loginUser,
   sendResetOTP,
+  verifyResetOTP,
+  resetPassword,
   changePassword,
   deleteAccount,
 } = require("../controllers/authController");
@@ -15,6 +17,8 @@ const authMiddleware = require("../middleware/authMiddleware");
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/send-reset-otp", sendResetOTP);
+router.post("/verify-reset-otp", verifyResetOTP);
+router.put("/reset-password", resetPassword);
 
 // Protected Routes
 router.put("/change-password", authMiddleware, changePassword);
