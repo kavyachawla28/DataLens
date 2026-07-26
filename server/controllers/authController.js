@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const User = require("../models/User");
+const { sendEmail } = require("../utils/mailService");
 
 const generateToken = (id) => {
   return jwt.sign(
@@ -44,7 +45,61 @@ const registerUser = async (req, res) => {
       email,
       password: hashedPassword,
     });
+try {
+  await sendEmail(
+    user.email,
+    "🎉 Welcome to DataLens",
+    `
+    <div style="font-family: Arial, sans-serif; max-width:600px; margin:auto; border:1px solid #ddd; border-radius:10px; overflow:hidden;">
+      
+      <div style="background:#2563eb; color:white; padding:20px; text-align:center;">
+        <h1>Welcome to DataLens</h1>
+      </div>
 
+      <div style="padding:30px; color:#333;">
+        <h2>Hello ${user.name},</h2>
+
+        <p>
+          Your DataLens account has been created successfully.
+        </p>
+
+        <p>
+          You can now securely log in and start analyzing your datasets.
+        </p>
+
+        <table style="margin-top:20px;">
+          <tr>
+            <td><strong>Name:</strong></td>
+            <td>${user.name}</td>
+          </tr>
+
+          <tr>
+            <td><strong>Email:</strong></td>
+            <td>${user.email}</td>
+          </tr>
+        </table>
+
+        <br>
+
+        <p>
+          Thank you for choosing DataLens.
+        </p>
+
+        <p>
+          Happy Analyzing! 📊
+        </p>
+      </div>
+
+      <div style="background:#f3f4f6; padding:15px; text-align:center; color:#666;">
+        © DataLens
+      </div>
+
+    </div>
+    `
+  );
+} catch (err) {
+  console.error("Welcome email failed:", err);
+}
     return res.status(201).json({
       message: "User registered successfully",
       token: generateToken(user._id),
