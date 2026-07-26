@@ -13,12 +13,16 @@ import {
 
 import { deleteAccount } from "../api/auth";
 import ProfileModal from "./ProfileModal";
+import ChangePasswordModal from "./ChangePasswordModal";
+import ForgotPasswordModal from "./ForgotPasswordModal";
 
 function Header() {
   const user = JSON.parse(localStorage.getItem("user"));
 
   const [showMenu, setShowMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const menuRef = useRef(null);
 
@@ -216,11 +220,11 @@ function Header() {
             </button>
 
             <button
-              style={menuButtonStyle}
-              onClick={handleChangePassword}
-            >
-              🔒 Change Password
-            </button>
+    style={menuButtonStyle}
+    onClick={() => setShowChangePassword(true)}
+>
+    🔒 Change Password
+</button>
 
             <button
               style={menuButtonStyle}
@@ -291,11 +295,26 @@ function Header() {
         <ProfileModal
           user={user}
           onClose={() => setShowProfile(false)}
-          onChangePassword={handleChangePassword}
+          onChangePassword={() => setShowChangePassword(true)}
           onDeleteAccount={handleDeleteAccount}
           onLogout={handleLogout}
         />
       )}
+      {showChangePassword && (
+  <ChangePasswordModal
+    onClose={() => setShowChangePassword(false)}
+    onForgotPassword={() => {
+      setShowChangePassword(false);
+      setShowForgotPassword(true);
+    }}
+  />
+)}
+
+{showForgotPassword && (
+  <ForgotPasswordModal
+    onClose={() => setShowForgotPassword(false)}
+  />
+)}
     </>
   );
 }

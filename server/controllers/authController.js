@@ -169,7 +169,6 @@ const loginUser = async (req, res) => {
 };
  
 const sendResetOTP = async (req, res) => {
-  console.log("sendResetOTP called");
   try {
     const { email } = req.body;
 
@@ -192,15 +191,10 @@ const sendResetOTP = async (req, res) => {
     // Generate 6-digit OTP
 const otp = crypto.randomInt(100000, 999999).toString();
 
-// Temporary (Development Only)
-console.log("================================");
-
-console.log("================================");
-
 // Hash OTP before saving
 const hashedOTP = await bcrypt.hash(otp, 10);
     user.resetOTP = hashedOTP;
-    user.resetOTPExpiry = Date.now() + 10 * 60 * 1000;
+    user.resetOTPExpiry =new Date(Date.now() + 10 * 60 * 1000)
 
     await user.save();
 
@@ -364,6 +358,7 @@ const resetPassword = async (req, res) => {
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
+    user.markModified("password");
 
     user.resetOTP = null;
     user.resetOTPExpiry = null;

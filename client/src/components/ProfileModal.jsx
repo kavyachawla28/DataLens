@@ -44,10 +44,16 @@ function ProfileModal({
         >
           <FaUserCircle size={70} color="#2563eb" />
 
-          <h2 style={{ color: "red", fontSize: "40px" }}>
-  TEST PROFILE
+          <h2
+  style={{
+    marginTop: "12px",
+    marginBottom: "5px",
+    color: "#111827",
+    fontWeight: "700",
+  }}
+>
+  {user?.name}
 </h2>
-
           <p
             style={{
               margin: 0,
