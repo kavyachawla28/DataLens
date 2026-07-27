@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Register from "./Register";
 import { loginUser } from "../api/auth";
+import ForgotPasswordModal from "../components/ForgotPasswordModal";
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -9,8 +10,8 @@ function Login() {
   });
 
   const [loading, setLoading] = useState(false);
-
   const [showRegister, setShowRegister] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -46,82 +47,123 @@ function Login() {
   }
 
   return (
-    <div
-      style={{
-        maxWidth: "400px",
-        margin: "80px auto",
-        padding: "30px",
-        border: "1px solid #ddd",
-        borderRadius: "10px",
-      }}
-    >
-      <h2>DataLens Login</h2>
-
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-          style={{
-            width: "100%",
-            padding: "10px",
-            marginBottom: "15px",
-          }}
-        />
-
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-          style={{
-            width: "100%",
-            padding: "10px",
-            marginBottom: "15px",
-          }}
-        />
-
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            width: "100%",
-            padding: "12px",
-            cursor: "pointer",
-          }}
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
-
+    <>
       <div
         style={{
-          marginTop: "20px",
-          textAlign: "center",
+          maxWidth: "400px",
+          margin: "80px auto",
+          padding: "30px",
+          border: "1px solid #ddd",
+          borderRadius: "10px",
+          background: "#fff",
         }}
       >
-        <p>Don't have an account?</p>
+        <h2>DataLens Login</h2>
 
-        <button
-          onClick={() => setShowRegister(true)}
+        <form onSubmit={handleSubmit}>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            style={{
+              width: "100%",
+              padding: "10px",
+              marginBottom: "15px",
+              boxSizing: "border-box",
+            }}
+          />
+
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            style={{
+              width: "100%",
+              padding: "10px",
+              marginBottom: "10px",
+              boxSizing: "border-box",
+            }}
+          />
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              marginBottom: "15px",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setShowForgotPassword(true)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#2563eb",
+                cursor: "pointer",
+                fontWeight: "600",
+                fontSize: "14px",
+                padding: 0,
+              }}
+            >
+              Forgot Password?
+            </button>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: "100%",
+              padding: "12px",
+              cursor: "pointer",
+              background: "#2563eb",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              fontWeight: "600",
+              fontSize: "16px",
+            }}
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+
+        <div
           style={{
-            background: "transparent",
-            border: "none",
-            color: "#2563eb",
-            cursor: "pointer",
-            fontWeight: "bold",
-            fontSize: "15px",
+            marginTop: "20px",
+            textAlign: "center",
           }}
         >
-          Register Here
-        </button>
+          <p>Don't have an account?</p>
+
+          <button
+            onClick={() => setShowRegister(true)}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#2563eb",
+              cursor: "pointer",
+              fontWeight: "bold",
+              fontSize: "15px",
+            }}
+          >
+            Register Here
+          </button>
+        </div>
       </div>
-    </div>
+
+      {showForgotPassword && (
+        <ForgotPasswordModal
+          onClose={() => setShowForgotPassword(false)}
+        />
+      )}
+    </>
   );
 }
 

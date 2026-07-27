@@ -1,4 +1,6 @@
+# ==========================
 # Logs
+# ==========================
 logs
 *.log
 npm-debug.log*
@@ -7,24 +9,67 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# ==========================
+# Dependencies
+# ==========================
+node_modules/
+
+# ==========================
+# Build Output
+# ==========================
+dist/
+dist-ssr/
+build/
+
+# ==========================
+# Environment Variables
+# ==========================
+.env
+.env.*
+client/.env
+server/.env
+
+# ==========================
+# Local Configuration
+# ==========================
 *.local
 
-# Editor directories and files
+# ==========================
+# IDE & Editor
+# ==========================
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
+
+# ==========================
+# Operating System Files
+# ==========================
 .DS_Store
+Thumbs.db
+
+# ==========================
+# Visual Studio
+# ==========================
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-# DataLens backend
-.env
+
+# ==========================
+# Uploads
+# ==========================
 server/uploads/
 
-# Test CSV files
-*.csv
+# ==========================
+# Cache
+# ==========================
+.vite/
+.cache/
+coverage/
+
+# ==========================
+# Optional: Ignore Test Data
+# Uncomment if you DON'T want CSVs in Git
+# ==========================
+# *.csv
