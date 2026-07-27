@@ -1,16 +1,173 @@
-# React + Vite
+# 📊 DataLens - Smart CSV Analytics Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack MERN application for uploading, analyzing, cleaning, and visualizing CSV datasets.
 
-Currently, two official plugins are available:
+🌐 **Live Demo:** https://data-lens-psi-drab.vercel.app
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+🔗 **Backend API:** https://datalens-backend-dke2.onrender.com
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚀 Features
 
-## Expanding the ESLint configuration
+### Authentication
+- JWT Authentication
+- User Registration
+- Secure Login
+- Logout
+- Change Password
+- Forgot Password using Email OTP
+- Delete Account
+- Welcome Email
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### CSV Analytics
+- Upload CSV files
+- Dataset Summary
+- Missing Value Analysis
+- Duplicate Detection
+- Outlier Detection
+- Column Profiling
+- Data Quality Score
+- Dataset Comparison
+
+### Visualization
+- Interactive Charts
+- Statistics Dashboard
+- Distribution Analysis
+
+### Data Cleaning
+- Clean Dataset
+- Download Cleaned CSV
+- Export PDF Report
+
+### Dataset Management
+- Upload History
+- Multiple Dataset Support
+- Dataset Comparison
+
+---
+
+# 🛠 Tech Stack
+
+## Frontend
+- React
+- Vite
+- Axios
+- Recharts
+
+## Backend
+- Node.js
+- Express.js
+- MongoDB Atlas
+- JWT
+- Nodemailer
+
+## Deployment
+- Vercel
+- Render
+- MongoDB Atlas
+
+---
+
+# 📷 Screenshots
+
+> Add screenshots here.
+
+Example:
+
+- Login Page
+- Dashboard
+- CSV Upload
+- Analytics
+- Charts
+- Dataset Comparison
+
+---
+
+# 📂 Project Structure
+
+```
+DataLens
+│
+├── client
+│   ├── src
+│   ├── public
+│   └── package.json
+│
+├── server
+│   ├── controllers
+│   ├── routes
+│   ├── models
+│   ├── middleware
+│   └── server.js
+│
+└── README.md
+```
+
+---
+
+# ⚙ Installation
+
+Clone the repository
+
+```bash
+git clone https://github.com/kavyachawla28/DataLens.git
+```
+
+Install frontend
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+Install backend
+
+```bash
+cd ../server
+npm install
+npm start
+```
+
+---
+
+# Environment Variables
+
+### Backend
+
+```
+MONGO_URI=
+JWT_SECRET=
+EMAIL_USER=
+EMAIL_PASS=
+```
+
+### Frontend
+
+```
+VITE_API_URL=http://localhost:5000/api
+```
+
+For production:
+
+```
+VITE_API_URL=https://datalens-backend-dke2.onrender.com/api
+```
+
+---
+
+# Future Enhancements
+
+- AI-powered insights
+- Predictive analytics
+- Excel support
+- Dark mode
+- Team collaboration
+- Role-based access control
+
+---
+
+# License
+
+MIT License
